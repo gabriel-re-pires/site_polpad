@@ -33,6 +33,12 @@ npm run build      # esquema do projeto.yml e licença por tipo
 Num PR, o workflow **Validar comunidade** roda as duas coisas. O guia para
 quem envia está em `CONTRIBUTING.md` e em `/docs/enviar-projeto/`.
 
+**Antes de aprovar um PR, olhe sempre a aba "Files changed".** O check roda com
+o código do próprio PR: alguém mal-intencionado pode alterar o script de
+validação para dar verde. Um PR de comunidade só deve ter arquivos dentro de
+`comunidade/<nome>/`. Se aparecer qualquer arquivo fora dessa pasta
+(`scripts/`, `src/`, `.github/`, `package*.json`…), não aprove.
+
 ## Publicar
 
 O workflow **Publicar** gera o site e publica no GitHub Pages a cada push no

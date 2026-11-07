@@ -86,7 +86,25 @@ export function conferirPasta(dir) {
       erro(`projeto.yml cita "${citado}", que não existe na pasta`);
     }
   }
+  for (const link of Array.isArray(dados.links) ? dados.links : []) {
+    const url = typeof link?.url === 'string' ? link.url.trim() : '';
+    if (!/^https?:\/\//i.test(url)) {
+      erro(`link "${link?.titulo ?? ''}": a url tem de começar com https:// (recebido "${url}")`);
+    }
+  }
   return erros;
+}
+
+/**
+ * Arquivos que o PR muda em relação a `base`. Sem detectar renomeação: mover um arquivo de
+ * fora para dentro de comunidade/ tem de aparecer também pelo caminho antigo.
+ */
+export function arquivosDoPR(base, cwd) {
+  const saida = execFileSync('git', ['diff', '--no-renames', '--name-only', `${base}...HEAD`], {
+    cwd,
+    encoding: 'utf8',
+  });
+  return saida.split('\n').filter(Boolean);
 }
 
 /** Um PR que mexe na comunidade só pode mexer numa pasta comunidade/<slug>/. */
@@ -122,9 +140,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
 
   const i = process.argv.indexOf('--pr-base');
   if (i !== -1) {
-    const base = process.argv[i + 1];
-    const saida = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { cwd: raiz, encoding: 'utf8' });
-    erros.push(...conferirCaminhosDoPR(saida.split('\n').filter(Boolean)));
+    erros.push(...conferirCaminhosDoPR(arquivosDoPR(process.argv[i + 1], raiz)));
   }
 
   if (erros.length > 0) {

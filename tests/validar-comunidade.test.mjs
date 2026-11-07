@@ -95,6 +95,23 @@ describe('conferirPasta', () => {
     expect(erros[0]).toContain('projeto.yml');
   });
 
+  it('link com esquema que não é http(s) é recusado', () => {
+    for (const url of ['javascript:alert(1)', 'JaVaScRiPt:alert(1)', 'data:text/html,<b>x</b>', 'vbscript:x']) {
+      const yml = YML_VALIDO + `links:
+  - titulo: Printables
+    url: "${url}"
+`;
+      const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': yml })));
+      expect(erros, url).toHaveLength(1);
+      expect(erros[0]).toContain('https');
+    }
+  });
+
+  it('link https passa', () => {
+    const yml = YML_VALIDO + 'links:\n  - titulo: Printables\n    url: https://www.printables.com/x\n';
+    expect(conferirPasta(projeto('meu-case', basico({ 'projeto.yml': yml })))).toEqual([]);
+  });
+
   it('YAML ilegível', () => {
     const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': 'titulo: [sem fechar' })));
     expect(erros).toHaveLength(1);

@@ -27,18 +27,21 @@ e precisa trazer o código-fonte ou um link para ele.
 1. Abra o [repositório do site](https://github.com/gabriel-re-pires/site_polpad)
    e clique em **Fork**.
 2. No seu fork, entre na pasta `comunidade` e clique em **Add file →
-   Upload files**.
-3. Escolha um nome para a pasta do projeto, só com letras minúsculas,
-   números e hífen (por exemplo `case-com-tampa-de-acrilico`). Envie os
-   arquivos para `comunidade/<nome>/`:
-   - um `projeto.yml` (modelo abaixo);
-   - uma imagem de capa;
-   - fotos e arquivos do projeto, se tiver.
-4. Clique em **Commit changes** e depois em **Contribute → Open pull
+   Create new file**.
+3. No campo do nome, digite o nome da pasta do projeto, uma barra e
+   `projeto.yml`, por exemplo `case-com-tampa-de-acrilico/projeto.yml`. Ao
+   digitar a barra, o GitHub cria a pasta. Use só letras minúsculas,
+   números e hífen no nome da pasta.
+4. Cole o conteúdo do `projeto.yml` (modelo abaixo), preencha e clique em
+   **Commit changes**.
+5. Entre na pasta que você criou, clique em **Add file → Upload files** e
+   envie a imagem de capa, as fotos e os arquivos do projeto. Clique em
+   **Commit changes** de novo.
+6. Volte à página do seu fork e clique em **Contribute → Open pull
    request**.
-5. Uma checagem automática confere o seu envio. Se algo estiver errado, a
-   mensagem no PR diz o arquivo e o motivo.
-6. Depois da revisão, o projeto aparece no site.
+7. Uma checagem automática confere o seu envio. Se ela ficar vermelha,
+   clique em **Details** para ver o arquivo e o motivo.
+8. Depois da revisão, o projeto aparece no site.
 
 ## O projeto.yml
 

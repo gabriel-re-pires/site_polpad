@@ -27,17 +27,21 @@ include its source code or a link to it.
 1. Open the [site repository](https://github.com/gabriel-re-pires/site_polpad)
    and click **Fork**.
 2. In your fork, go into the `comunidade` folder and click **Add file →
-   Upload files**.
-3. Pick a folder name for your project, using only lowercase letters,
-   numbers and hyphens (for example `acrylic-top-case`). Upload the files
-   to `comunidade/<name>/`:
-   - a `projeto.yml` (template below);
-   - a cover image;
-   - photos and project files, if any.
-4. Click **Commit changes**, then **Contribute → Open pull request**.
-5. An automatic check looks at your submission. If something is wrong, the
-   message on the PR names the file and the reason.
-6. After review, the project shows up on the site.
+   Create new file**.
+3. In the name field, type your project's folder name, a slash and
+   `projeto.yml`, for example `acrylic-top-case/projeto.yml`. Typing the
+   slash makes GitHub create the folder. Use only lowercase letters,
+   numbers and hyphens in the folder name.
+4. Paste the `projeto.yml` content (template below), fill it in and click
+   **Commit changes**.
+5. Go into the folder you created, click **Add file → Upload files** and
+   upload the cover image, photos and project files. Click **Commit
+   changes** again.
+6. Go back to your fork's page and click **Contribute → Open pull
+   request**.
+7. An automatic check looks at your submission. If it turns red, click
+   **Details** to see the file and the reason.
+8. After review, the project shows up on the site.
 
 ## The projeto.yml file
 

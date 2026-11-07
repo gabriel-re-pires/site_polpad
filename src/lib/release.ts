@@ -26,3 +26,18 @@ export function extrairRelease(dados: unknown): InfoRelease | null {
   }
   return { versao: tag_name.replace(/^v/, ''), firmwareUrl };
 }
+
+/**
+ * Lê a resposta de /releases (mais nova primeiro). A versão vem da release publicada mais
+ * recente; o firmware, da mais recente que tem um .bin — releases só do app não trazem firmware.
+ */
+export function extrairReleases(lista: unknown): InfoRelease | null {
+  if (!Array.isArray(lista)) return null;
+  const publicadas = lista
+    .filter((r) => typeof r === 'object' && r !== null && !r.draft && !r.prerelease)
+    .map(extrairRelease)
+    .filter((r): r is InfoRelease => r !== null);
+  if (publicadas.length === 0) return null;
+  const comFirmware = publicadas.find((r) => r.firmwareUrl !== null);
+  return { versao: publicadas[0].versao, firmwareUrl: comFirmware?.firmwareUrl ?? null };
+}

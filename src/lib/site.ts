@@ -7,11 +7,12 @@ export const DOWNLOADS = {
   windows: `${ULTIMA}/download/Polpad-Windows-Instalador.exe`,
   linux: `${ULTIMA}/download/Polpad-Linux-Instalador.tar.gz`,
   sha256: `${ULTIMA}/download/SHA256SUMS.txt`,
-  /** O nome do firmware muda a cada versão; sem a API, o link cai na página da release. */
-  firmwareReserva: ULTIMA,
+  /** O nome do firmware muda a cada versão e nem toda release traz um; sem a API, vai à lista de releases. */
+  firmwareReserva: `${REPO_POLPAD}/releases`,
 } as const;
 
-export const API_RELEASE = 'https://api.github.com/repos/gabriel-re-pires/polpad/releases/latest';
+/** Lista de releases (mais nova primeiro): a última pode ser só do app, sem firmware. */
+export const API_RELEASES = 'https://api.github.com/repos/gabriel-re-pires/polpad/releases?per_page=10';
 
 /** Arquivos do hardware no repositório do app. */
 export const HARDWARE = {

@@ -25,7 +25,10 @@ const comunidade = defineCollection({
         capa: image(),
         fotos: z.array(image()).default([]),
         arquivos: z.array(z.string()).default([]),
-        links: z.array(z.object({ titulo: z.string(), url: z.url() })).default([]),
+        // Só http(s): um "javascript:" num link viraria script rodando no site.
+        links: z
+          .array(z.object({ titulo: z.string().min(1), url: z.url({ protocol: /^https?$/ }) }))
+          .default([]),
         versao_firmware: z.string().optional(),
       })
       .superRefine((projeto, ctx) => {
