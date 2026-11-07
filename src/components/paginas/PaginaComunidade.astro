@@ -30,7 +30,7 @@ const projetos = ordenarPorData(await getCollection('comunidade'));
     </div>
 
     <ul class="grade">
-      {projetos.map((projeto) => <CartaoProjeto projeto={projeto} idioma={idioma} />)}
+      {projetos.map((projeto) => <CartaoProjeto projeto={projeto} idioma={idioma} nivel={2} />)}
     </ul>
     <p class="vazio" hidden>{t(idioma, 'comunidade_vazio')}</p>
   </section>

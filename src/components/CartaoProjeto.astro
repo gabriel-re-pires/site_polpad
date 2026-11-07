@@ -7,9 +7,12 @@ import { dataPorExtenso } from '../lib/formato';
 interface Props {
   projeto: CollectionEntry<'comunidade'>;
   idioma: Idioma;
+  /** Nível do título do cartão, para seguir a hierarquia da página. */
+  nivel?: 2 | 3;
 }
 
-const { projeto, idioma } = Astro.props;
+const { projeto, idioma, nivel = 3 } = Astro.props;
+const Titulo = nivel === 2 ? 'h2' : 'h3';
 const { titulo, tipo, autor, capa, data } = projeto.data;
 ---
 
@@ -18,7 +21,7 @@ const { titulo, tipo, autor, capa, data } = projeto.data;
     <Image src={capa} alt="" widths={[360, 640]} sizes="(min-width: 960px) 360px, 100vw" class="capa" />
     <div class="texto">
       <span class="tipo">{t(idioma, `tipo_${tipo}`)}</span>
-      <h3>{titulo}</h3>
+      <Titulo class="titulo">{titulo}</Titulo>
       <p class="meta">
         {`${t(idioma, 'projeto_por')} ${autor.nome}`} · <time datetime={data.toISOString().slice(0, 10)}
           >{dataPorExtenso(data, idioma)}</time
@@ -62,7 +65,7 @@ const { titulo, tipo, autor, capa, data } = projeto.data;
     letter-spacing: 0.06em;
     color: var(--cor-texto-suave);
   }
-  h3 {
+  .titulo {
     font-family: var(--fonte-texto);
     font-weight: 600;
     font-size: 1.1rem;

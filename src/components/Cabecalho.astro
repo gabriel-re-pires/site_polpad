@@ -28,7 +28,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
         href={alternativa}
         hreflang={langHtml(outroIdioma(idioma))}
         lang={langHtml(outroIdioma(idioma))}
-        aria-label={t(idioma, 'nav_idioma')}>{t(idioma, 'nav_idioma_curto')}</a
+        title={t(idioma, 'nav_idioma')}>{t(idioma, 'nav_idioma_curto')}</a
       >
       <a class="github" href={REPO_POLPAD} aria-label={t(idioma, 'nav_github')}>
         <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" fill="currentColor">
