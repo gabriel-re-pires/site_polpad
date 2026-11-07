@@ -1,0 +1,47 @@
+---
+import { t, type Idioma } from '../lib/i18n';
+import { AUTORES, REPO_SITE } from '../lib/site';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+const [primeiro, segundo] = AUTORES;
+---
+
+<footer class="rodape">
+  <div class="conteiner linhas">
+    <p>
+      {`${t(idioma, 'rodape_feito_por')} `}<a href={`https://github.com/${primeiro.github}`}
+        >{primeiro.nome}</a
+      >{` ${t(idioma, 'rodape_e')} `}<a href={`https://github.com/${segundo.github}`}
+        >{segundo.nome}</a
+      >.
+    </p>
+    <p>{t(idioma, 'rodape_software')} · {t(idioma, 'rodape_hardware')}</p>
+    <p><a href={REPO_SITE}>{t(idioma, 'rodape_codigo_site')}</a></p>
+  </div>
+</footer>
+
+<style>
+  .rodape {
+    border-top: 1px solid var(--cor-borda);
+    margin-top: 4rem;
+    color: var(--cor-texto-suave);
+    font-size: 0.9rem;
+  }
+  .linhas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-block: 2rem;
+  }
+  p {
+    margin: 0;
+  }
+  a:hover {
+    color: var(--cor-texto);
+  }
+</style>

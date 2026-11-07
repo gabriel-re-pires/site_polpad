@@ -1,0 +1,18 @@
+/* Cores da marca do polvo (docs/marca/polvo-encoder no repositório polpad).
+   Roxo sobre o fundo só em título grande e ícone: o contraste (3,2:1) não basta para texto pequeno. */
+:root {
+  --cor-fundo: #0e0b14;
+  --cor-fundo-elevado: #17121f;
+  --cor-destaque: #7a2ef0;
+  --cor-destaque-forte: #8f4bf5;
+  --cor-texto: #ffffff;
+  --cor-texto-suave: #b9b3c6;
+  --cor-borda: #2a2433;
+
+  --fonte-titulo: 'Unbounded', system-ui, sans-serif;
+  --fonte-texto: 'Inter', system-ui, sans-serif;
+
+  --largura-max: 1120px;
+  --raio: 12px;
+  --gutter: clamp(16px, 4vw, 32px);
+}

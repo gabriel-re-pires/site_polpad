@@ -1,0 +1,15 @@
+{
+  "site_descricao": "Polpad: an open source ESP32-C3 macropad. Download the software, firmware and hardware, and browse community projects.",
+  "nav_docs": "Docs",
+  "nav_comunidade": "Community",
+  "nav_baixar": "Download",
+  "nav_github": "Polpad on GitHub",
+  "nav_idioma": "Português",
+  "nav_idioma_curto": "PT",
+  "nav_inicio": "Polpad home page",
+  "rodape_software": "Software and firmware under GPL-3.0",
+  "rodape_hardware": "Hardware under CERN-OHL-S",
+  "rodape_feito_por": "Made by",
+  "rodape_e": "and",
+  "rodape_codigo_site": "Source of this site"
+}
