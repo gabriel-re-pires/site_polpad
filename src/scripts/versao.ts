@@ -18,7 +18,8 @@ export async function atualizarVersao(raiz: ParentNode = document): Promise<void
     if (!info) return;
 
     for (const el of raiz.querySelectorAll<HTMLElement>('[data-versao]')) {
-      el.textContent = `v${info.versao}`;
+      // data-rotulo (opcional) vem antes do número: "Versão atual: v0.7.2".
+      el.textContent = el.dataset.rotulo ? `${el.dataset.rotulo}: v${info.versao}` : `v${info.versao}`;
       el.hidden = false;
     }
     if (info.firmwareUrl) {

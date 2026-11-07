@@ -39,8 +39,9 @@ const tituloCompleto = titulo === 'Polpad' ? titulo : `${titulo} · Polpad`;
     <meta property="og:image" content={new URL(`${base}icon-512.png`, Astro.site).href} />
   </head>
   <body>
+    <a class="pular" href="#conteudo">{t(idioma, 'pular_conteudo')}</a>
     <Cabecalho idioma={idioma} alternativa={alternativa} />
-    <main>
+    <main id="conteudo" tabindex="-1">
       <slot />
     </main>
     <Rodape idioma={idioma} />

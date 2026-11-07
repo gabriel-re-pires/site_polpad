@@ -4,7 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
 import { urlArquivo } from '../../lib/comunidade';
-import { dataPorExtenso, paragrafos } from '../../lib/formato';
+import { dataPorExtenso, paragrafos, resumo } from '../../lib/formato';
 
 interface Props {
   idioma: Idioma;
@@ -20,7 +20,7 @@ const nomeArquivo = (caminho: string) => caminho.split('/').pop() ?? caminho;
 <Base
   idioma={idioma}
   titulo={titulo}
-  descricao={paragrafos(descricao)[0]}
+  descricao={resumo(paragrafos(descricao)[0] ?? titulo, 160)}
   alternativa={rota(outroIdioma(idioma), 'comunidade', projeto.id)}
 >
   <article class="conteiner">
