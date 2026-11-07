@@ -1,0 +1,198 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
+import { urlArquivo } from '../../lib/comunidade';
+import { dataPorExtenso, paragrafos } from '../../lib/formato';
+
+interface Props {
+  idioma: Idioma;
+  projeto: CollectionEntry<'comunidade'>;
+}
+
+const { idioma, projeto } = Astro.props;
+const { titulo, tipo, autor, descricao, licenca, data, capa, fotos, arquivos, links, versao_firmware } = projeto.data;
+const semArquivos = arquivos.length === 0 && links.length === 0;
+const nomeArquivo = (caminho: string) => caminho.split('/').pop() ?? caminho;
+---
+
+<Base
+  idioma={idioma}
+  titulo={titulo}
+  descricao={paragrafos(descricao)[0]}
+  alternativa={rota(outroIdioma(idioma), 'comunidade', projeto.id)}
+>
+  <article class="conteiner">
+    <a class="voltar" href={rota(idioma, 'comunidade')}>← {t(idioma, 'projeto_voltar')}</a>
+
+    <div class="cabeca">
+      <Image src={capa} alt={titulo} widths={[480, 960]} sizes="(min-width: 960px) 480px, 100vw" class="capa" />
+      <div>
+        <span class="tipo">{t(idioma, `tipo_${tipo}`)}</span>
+        <h1>{titulo}</h1>
+        <p class="autor">
+          {`${t(idioma, 'projeto_por')} `}{
+            autor.github ? <a href={`https://github.com/${autor.github}`}>{autor.nome}</a> : autor.nome
+          }
+        </p>
+        <dl>
+          <dt>{t(idioma, 'projeto_licenca')}</dt>
+          <dd><a href={`https://spdx.org/licenses/${licenca}.html`}>{licenca}</a></dd>
+          <dt>{t(idioma, 'projeto_data')}</dt>
+          <dd><time datetime={data.toISOString().slice(0, 10)}>{dataPorExtenso(data, idioma)}</time></dd>
+          {
+            versao_firmware && (
+              <>
+                <dt>{t(idioma, 'projeto_firmware')}</dt>
+                <dd>{versao_firmware}</dd>
+              </>
+            )
+          }
+        </dl>
+      </div>
+    </div>
+
+    <div class="descricao">
+      {paragrafos(descricao).map((p) => <p>{p}</p>)}
+    </div>
+
+    {
+      arquivos.length > 0 && (
+        <section>
+          <h2>{t(idioma, 'projeto_arquivos')}</h2>
+          <ul class="botoes">
+            {arquivos.map((arquivo) => (
+              <li>
+                <a class="botao botao-primario" href={urlArquivo(projeto.id, arquivo)} download>
+                  {nomeArquivo(arquivo)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      links.length > 0 && (
+        <section>
+          <h2>{t(idioma, 'projeto_links')}</h2>
+          <ul class="botoes">
+            {links.map((link) => (
+              <li>
+                <a class="botao botao-secundario" href={link.url} rel="noopener">
+                  {link.titulo} ↗
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {semArquivos && <p class="sem-arquivos">{t(idioma, 'projeto_sem_arquivos')}</p>}
+
+    {
+      fotos.length > 0 && (
+        <section>
+          <h2>{t(idioma, 'projeto_fotos')}</h2>
+          <div class="fotos">
+            {fotos.map((foto, i) => (
+              <Image src={foto} alt={`${titulo} (${i + 1})`} widths={[480, 960]} sizes="(min-width: 960px) 540px, 100vw" />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-block: 2rem 3rem;
+  }
+  .voltar {
+    color: var(--cor-texto-suave);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .voltar:hover {
+    color: var(--cor-texto);
+  }
+  .cabeca {
+    display: grid;
+    gap: 2rem;
+    margin-block: 1.5rem 2rem;
+  }
+  @media (min-width: 840px) {
+    .cabeca {
+      grid-template-columns: minmax(0, 480px) 1fr;
+      align-items: center;
+    }
+  }
+  .capa {
+    width: 100%;
+    border-radius: var(--raio);
+    border: 1px solid var(--cor-borda);
+  }
+  .tipo {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cor-texto-suave);
+  }
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    margin-top: 0.3rem;
+  }
+  h2 {
+    font-size: 1.2rem;
+    margin-top: 2rem;
+  }
+  .autor {
+    color: var(--cor-texto-suave);
+    margin: 0 0 1rem;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 1rem;
+    margin: 0;
+  }
+  dt {
+    color: var(--cor-texto-suave);
+  }
+  dd {
+    margin: 0;
+  }
+  .descricao {
+    max-width: 70ch;
+  }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .sem-arquivos {
+    color: var(--cor-texto-suave);
+  }
+  .fotos {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .fotos {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .fotos :global(img) {
+    border-radius: var(--raio);
+    width: 100%;
+  }
+</style>

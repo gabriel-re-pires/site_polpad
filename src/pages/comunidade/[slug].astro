@@ -1,0 +1,13 @@
+---
+import { getCollection } from 'astro:content';
+import PaginaProjeto from '../../components/paginas/PaginaProjeto.astro';
+
+export async function getStaticPaths() {
+  const projetos = await getCollection('comunidade');
+  return projetos.map((projeto) => ({ params: { slug: projeto.id }, props: { projeto } }));
+}
+
+const { projeto } = Astro.props;
+---
+
+<PaginaProjeto idioma="pt-br" projeto={projeto} />

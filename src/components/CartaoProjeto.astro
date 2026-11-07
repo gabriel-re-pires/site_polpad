@@ -1,0 +1,76 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { rota, t, type Idioma } from '../lib/i18n';
+import { dataPorExtenso } from '../lib/formato';
+
+interface Props {
+  projeto: CollectionEntry<'comunidade'>;
+  idioma: Idioma;
+}
+
+const { projeto, idioma } = Astro.props;
+const { titulo, tipo, autor, capa, data } = projeto.data;
+---
+
+<li class="cartao" data-tipo={tipo}>
+  <a href={rota(idioma, 'comunidade', projeto.id)}>
+    <Image src={capa} alt="" widths={[360, 640]} sizes="(min-width: 960px) 360px, 100vw" class="capa" />
+    <div class="texto">
+      <span class="tipo">{t(idioma, `tipo_${tipo}`)}</span>
+      <h3>{titulo}</h3>
+      <p class="meta">
+        {`${t(idioma, 'projeto_por')} ${autor.nome}`} · <time datetime={data.toISOString().slice(0, 10)}
+          >{dataPorExtenso(data, idioma)}</time
+        >
+      </p>
+    </div>
+  </a>
+</li>
+
+<style>
+  .cartao {
+    list-style: none;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    background: var(--cor-fundo-elevado);
+    overflow: hidden;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .cartao:hover {
+    border-color: var(--cor-destaque);
+    transform: translateY(-2px);
+  }
+  a {
+    display: block;
+    text-decoration: none;
+    height: 100%;
+  }
+  .capa {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    background: var(--cor-borda);
+  }
+  .texto {
+    padding: 1rem 1.1rem 1.2rem;
+  }
+  .tipo {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cor-texto-suave);
+  }
+  h3 {
+    font-family: var(--fonte-texto);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0.3rem 0;
+  }
+  .meta {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--cor-texto-suave);
+  }
+</style>
