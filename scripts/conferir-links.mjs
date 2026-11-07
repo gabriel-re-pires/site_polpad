@@ -14,6 +14,17 @@ export function linksInternos(html) {
   return links;
 }
 
+/** Todo href/src interno, absoluto ou relativo (fora esquemas como https:, mailto: e âncoras). */
+function linksDaPagina(html) {
+  const links = [];
+  for (const m of html.matchAll(/\b(?:href|src)\s*=\s*["']([^"']*)["']/gi)) {
+    const url = m[1];
+    if (url === '' || url.startsWith('#') || url.startsWith('//') || /^[a-z][a-z0-9+.-]*:/i.test(url)) continue;
+    links.push(url);
+  }
+  return links;
+}
+
 function paginasHtml(dir) {
   return fs
     .readdirSync(dir, { recursive: true, withFileTypes: true })
@@ -27,8 +38,11 @@ export function conferirDist(dist, base) {
   const erros = [];
   for (const pagina of paginasHtml(dist)) {
     const relativo = path.relative(dist, pagina);
-    for (const link of linksInternos(fs.readFileSync(pagina, 'utf8'))) {
-      const limpo = link.split(/[?#]/)[0];
+    // URL da pasta da página, para resolver links relativos (ex.: ../../baixar/).
+    const pastaDaPagina = path.dirname(relativo).split(path.sep).filter((p) => p !== '.').join('/');
+    const urlDaPagina = `http://site${prefixo}${pastaDaPagina ? `${pastaDaPagina}/` : ''}`;
+    for (const link of linksDaPagina(fs.readFileSync(pagina, 'utf8'))) {
+      const limpo = new URL(link, urlDaPagina).pathname;
       if (!limpo.startsWith(prefixo)) {
         erros.push(`${relativo}: ${link} sem o base ${prefixo}`);
         continue;

@@ -3,7 +3,8 @@ export interface InfoRelease {
   firmwareUrl: string | null;
 }
 
-const NOME_FIRMWARE = /^firmware-\d+\.\d+\.\d+\.bin$/;
+/** A mesma regra do app (polpad/src/polpad/device/firmware_release.py, ASSET_PATTERN). */
+const NOME_FIRMWARE = /^firmware[\w.-]*\.bin$/i;
 
 /** Lê a resposta de /releases/latest da API do GitHub. Qualquer coisa inesperada vira null. */
 export function extrairRelease(dados: unknown): InfoRelease | null {
