@@ -1,0 +1,28 @@
+name: Validar comunidade
+
+# Roda em PRs (inclusive de forks) que mexem em comunidade/.
+# Só lê o repositório e não usa segredos.
+on:
+  pull_request:
+    paths:
+      - 'comunidade/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Arquivos, tamanhos e caminhos do PR
+        run: node scripts/validar-comunidade.mjs --pr-base "origin/${{ github.base_ref }}"
+      - name: Esquema e licença (build)
+        run: npm run build
