@@ -9,3 +9,8 @@ export function urlEnviarProjeto(idioma: Idioma): string {
 export function urlMontagem(idioma: Idioma): string {
   return rota(idioma, 'docs');
 }
+
+/** Doc de instalação do app. Até as docs existirem, aponta para o índice das docs. */
+export function urlInstalar(idioma: Idioma): string {
+  return rota(idioma, 'docs');
+}

@@ -1,0 +1,129 @@
+---
+import Base from '../../layouts/Base.astro';
+import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
+import { DOWNLOADS, HARDWARE } from '../../lib/site';
+import { urlInstalar, urlMontagem } from '../../lib/links';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+---
+
+<Base idioma={idioma} titulo={t(idioma, 'baixar_titulo')} alternativa={rota(outroIdioma(idioma), 'baixar')}>
+  <section class="conteiner">
+    <h1>{t(idioma, 'baixar_titulo')}</h1>
+    <p class="intro">
+      {t(idioma, 'baixar_intro')}
+      <span class="versao" data-versao hidden></span>
+    </p>
+
+    <div class="blocos">
+      <article class="bloco">
+        <h2>{t(idioma, 'baixar_software')}</h2>
+        <p>{t(idioma, 'baixar_software_texto')}</p>
+        <div class="botoes">
+          <a class="botao botao-primario" href={DOWNLOADS.windows}>{t(idioma, 'baixar_windows')}</a>
+          <a class="botao botao-secundario" href={DOWNLOADS.linux}>{t(idioma, 'baixar_linux')}</a>
+        </div>
+        <p class="pequeno">
+          <a href={urlInstalar(idioma)}>{t(idioma, 'baixar_como_instalar')}</a> ·
+          <a href={DOWNLOADS.sha256}>{t(idioma, 'baixar_sha')}</a>
+        </p>
+      </article>
+
+      <article class="bloco">
+        <h2>{t(idioma, 'baixar_firmware')}</h2>
+        <p>{t(idioma, 'baixar_firmware_texto')}</p>
+        <p class="pequeno">
+          <a data-firmware href={DOWNLOADS.firmwareReserva}>{t(idioma, 'baixar_firmware_avancado')}</a>
+        </p>
+      </article>
+
+      <article class="bloco">
+        <h2>{t(idioma, 'baixar_hardware')}</h2>
+        <p>{t(idioma, 'baixar_hardware_texto')}</p>
+        <div class="botoes">
+          <a class="botao botao-secundario" href={HARDWARE.caseTopo}>{t(idioma, 'baixar_case_topo')}</a>
+          <a class="botao botao-secundario" href={HARDWARE.caseBase}>{t(idioma, 'baixar_case_base')}</a>
+        </div>
+        <p class="pequeno">
+          <a href={HARDWARE.gcode}>{t(idioma, 'baixar_gcode')}</a> ·
+          <a href={urlMontagem(idioma)}>{t(idioma, 'baixar_como_montar')}</a>
+        </p>
+      </article>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import '../../scripts/versao';
+</script>
+
+<style>
+  section {
+    padding-block: 3rem;
+  }
+  h1 {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+  }
+  .intro {
+    color: var(--cor-texto-suave);
+    max-width: 60ch;
+  }
+  .versao {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.55rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto);
+  }
+  .versao[hidden] {
+    display: none;
+  }
+  .blocos {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 960px) {
+    .blocos {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .bloco {
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    background: var(--cor-fundo-elevado);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+  h2 {
+    font-size: 1.3rem;
+  }
+  .bloco > p {
+    color: var(--cor-texto-suave);
+    margin-top: 0;
+  }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: auto;
+  }
+  .pequeno {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+  }
+  .pequeno a {
+    color: var(--cor-texto-suave);
+  }
+  .pequeno a:hover {
+    color: var(--cor-texto);
+  }
+</style>
