@@ -1,0 +1,133 @@
+---
+import { rota, t, type Idioma } from '../lib/i18n';
+import { REPO_POLPAD } from '../lib/site';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+---
+
+<section class="hero">
+  <div class="conteiner centro">
+    <p class="etiqueta">
+      <span class="ponto" aria-hidden="true"></span>
+      {t(idioma, 'hero_etiqueta')}
+      <span class="versao" data-versao hidden></span>
+    </p>
+    <h1>
+      <span class="roxo">{t(idioma, 'hero_linha1')}</span>
+      <span class="roxo">{t(idioma, 'hero_linha2')}</span>
+      <span>{t(idioma, 'hero_linha3')}</span>
+    </h1>
+    <p class="sub">
+      {t(idioma, 'hero_sub1')}<br />
+      {t(idioma, 'hero_sub2')}
+    </p>
+    <div class="botoes">
+      <a class="botao botao-primario grande" href={rota(idioma, 'baixar')}>
+        {t(idioma, 'hero_baixar')}
+        <span aria-hidden="true">→</span>
+      </a>
+      <a class="botao botao-secundario grande" href={REPO_POLPAD}>
+        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="currentColor">
+          <path
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+          ></path>
+        </svg>
+        {t(idioma, 'hero_github')}
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../scripts/versao';
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(3rem, 9vw, 6rem) clamp(3rem, 8vw, 5rem);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -20% -10% auto;
+    height: 90%;
+    background: radial-gradient(ellipse at 50% 40%, rgb(122 46 240 / 0.28), transparent 65%);
+    pointer-events: none;
+  }
+  .centro {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .etiqueta {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0 0 2rem;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid rgb(122 46 240 / 0.45);
+    background: rgb(122 46 240 / 0.12);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto);
+  }
+  .ponto {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--cor-destaque-forte);
+  }
+  .versao {
+    color: var(--cor-texto-suave);
+  }
+  .versao[hidden] {
+    display: none;
+  }
+  h1 {
+    font-size: clamp(2.4rem, 9vw, 6.5rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.75rem;
+  }
+  h1 span {
+    display: block;
+  }
+  .roxo {
+    color: var(--cor-destaque);
+  }
+  .sub {
+    color: var(--cor-texto-suave);
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+    margin: 0 0 2.5rem;
+  }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .grande {
+    padding: 1rem 1.75rem;
+    font-size: 1.05rem;
+  }
+  .botao-primario.grande {
+    box-shadow: 0 8px 30px rgb(122 46 240 / 0.35);
+  }
+  @media (max-width: 480px) {
+    .botoes {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,71 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../Hero.astro';
+import Cartoes from '../Cartoes.astro';
+import CartaoProjeto from '../CartaoProjeto.astro';
+import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
+import { ordenarPorData } from '../../lib/comunidade';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+const recentes = ordenarPorData(await getCollection('comunidade')).slice(0, 3);
+---
+
+<Base idioma={idioma} titulo="Polpad" alternativa={rota(outroIdioma(idioma), 'inicio')}>
+  <Hero idioma={idioma} />
+  <Cartoes idioma={idioma} />
+  {
+    recentes.length > 0 && (
+      <section class="conteiner previa">
+        <div class="topo">
+          <h2>{t(idioma, 'previa_titulo')}</h2>
+          <a href={rota(idioma, 'comunidade')}>
+            {t(idioma, 'previa_ver_todos')} <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <ul class="grade">
+          {recentes.map((projeto) => (
+            <CartaoProjeto projeto={projeto} idioma={idioma} />
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .previa {
+    padding-block: 2rem;
+  }
+  .topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+  h2 {
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    margin: 0;
+  }
+  .topo a {
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--cor-texto-suave);
+  }
+  .topo a:hover {
+    color: var(--cor-texto);
+  }
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 1.25rem;
+    padding: 0;
+    margin: 0;
+  }
+</style>
