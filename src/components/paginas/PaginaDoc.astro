@@ -1,0 +1,38 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import DocsLayout from '../../layouts/Docs.astro';
+import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
+import { traducao, urlDoc } from '../../lib/docs';
+
+interface Props {
+  idioma: Idioma;
+  doc: CollectionEntry<'docs'>;
+}
+
+const { idioma, doc } = Astro.props;
+const { Content } = await render(doc);
+const outro = outroIdioma(idioma);
+const traduzido = traducao(await getCollection('docs'), doc, outro);
+const alternativa = traduzido ? urlDoc(outro, traduzido) : rota(outro, 'docs');
+---
+
+<DocsLayout idioma={idioma} titulo={doc.data.titulo} descricao={doc.data.descricao} alternativa={alternativa} atual={doc}>
+  <h1>{doc.data.titulo}</h1>
+  <Content />
+  {
+    doc.data.fonte && (
+      <p class="fonte">
+        <a href={doc.data.fonte}>{t(idioma, 'docs_ver_repositorio')} ↗</a>
+      </p>
+    )
+  }
+</DocsLayout>
+
+<style>
+  .fonte {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--cor-borda);
+    font-size: 0.9rem;
+  }
+</style>

@@ -72,5 +72,10 @@
   "cartao_firmware_texto": "O app grava e atualiza o firmware pelo cabo USB, sem ferramentas extras.",
   "cartao_firmware_link": "Ver versões",
   "previa_titulo": "Da comunidade",
-  "previa_ver_todos": "Ver todos os projetos"
+  "previa_ver_todos": "Ver todos os projetos",
+  "docs_titulo": "Docs",
+  "docs_intro": "Como montar, instalar e usar o Polpad, e como enviar o seu projeto para a comunidade.",
+  "docs_ver_repositorio": "Ver a fonte no repositório",
+  "docs_navegacao": "Docs",
+  "nao_encontrado_titulo": "Página não encontrada"
 }

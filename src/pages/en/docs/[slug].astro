@@ -1,0 +1,14 @@
+---
+import { getCollection } from 'astro:content';
+import PaginaDoc from '../../../components/paginas/PaginaDoc.astro';
+import { docsDoIdioma, slugDoDoc } from '../../../lib/docs';
+
+export async function getStaticPaths() {
+  const docs = docsDoIdioma(await getCollection('docs'), 'en');
+  return docs.map((doc) => ({ params: { slug: slugDoDoc(doc.id) }, props: { doc } }));
+}
+
+const { doc } = Astro.props;
+---
+
+<PaginaDoc idioma="en" doc={doc} />

@@ -1,0 +1,40 @@
+---
+// O GitHub Pages tem um 404 só para o site todo: o texto vem nos dois idiomas.
+import Base from '../layouts/Base.astro';
+import { rota, t } from '../lib/i18n';
+---
+
+<Base idioma="pt-br" titulo={t('pt-br', 'nao_encontrado_titulo')} alternativa={rota('en', 'inicio')}>
+  <section class="conteiner">
+    <p class="codigo" aria-hidden="true">404</p>
+    <h1>{t('pt-br', 'nao_encontrado_titulo')}</h1>
+    <p><a href={rota('pt-br', 'inicio')}>Voltar para a página inicial</a></p>
+    <h2 lang="en">{t('en', 'nao_encontrado_titulo')}</h2>
+    <p lang="en"><a href={rota('en', 'inicio')}>Back to the home page</a></p>
+  </section>
+</Base>
+
+<style>
+  section {
+    padding-block: 5rem;
+    text-align: center;
+  }
+  .codigo {
+    font-family: var(--fonte-titulo);
+    font-size: clamp(4rem, 18vw, 9rem);
+    line-height: 1;
+    color: var(--cor-destaque);
+    margin: 0 0 1rem;
+  }
+  h1 {
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+  }
+  h2 {
+    font-size: 1.2rem;
+    color: var(--cor-texto-suave);
+    margin-top: 2.5rem;
+  }
+  a {
+    font-weight: 600;
+  }
+</style>

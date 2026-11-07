@@ -1,0 +1,155 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from './Base.astro';
+import { t, type Idioma } from '../lib/i18n';
+import { docsDoIdioma, urlDoc } from '../lib/docs';
+
+interface Props {
+  idioma: Idioma;
+  titulo: string;
+  descricao?: string;
+  alternativa: string;
+  /** Doc aberto agora; ausente no índice. */
+  atual?: CollectionEntry<'docs'>;
+}
+
+const { idioma, titulo, descricao, alternativa, atual } = Astro.props;
+const lista = docsDoIdioma(await getCollection('docs'), idioma);
+---
+
+<Base idioma={idioma} titulo={titulo} descricao={descricao} alternativa={alternativa}>
+  <div class="conteiner docs">
+    <nav aria-label={t(idioma, 'docs_navegacao')}>
+      <ul>
+        {
+          lista.map((doc) => (
+            <li>
+              <a href={urlDoc(idioma, doc)} aria-current={doc.id === atual?.id ? 'page' : undefined}>
+                {doc.data.titulo}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <article>
+      <slot />
+    </article>
+  </div>
+</Base>
+
+<style>
+  .docs {
+    display: grid;
+    gap: 2rem;
+    padding-block: 2.5rem 3rem;
+  }
+  @media (min-width: 768px) {
+    .docs {
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 3rem;
+    }
+    nav {
+      position: sticky;
+      top: 88px;
+      align-self: start;
+    }
+  }
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border-left: 1px solid var(--cor-borda);
+  }
+  @media (max-width: 767px) {
+    nav ul {
+      flex-direction: row;
+      flex-wrap: wrap;
+      border-left: 0;
+      gap: 0.5rem;
+    }
+    nav a {
+      border: 1px solid var(--cor-borda);
+      border-radius: 999px;
+      margin-left: 0 !important;
+    }
+  }
+  nav a {
+    display: block;
+    padding: 0.35rem 0.9rem;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--cor-texto-suave);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  nav a:hover {
+    color: var(--cor-texto);
+  }
+  nav a[aria-current='page'] {
+    color: var(--cor-texto);
+    border-left-color: var(--cor-destaque);
+  }
+  article {
+    min-width: 0;
+    max-width: 75ch;
+  }
+  article :global(h1) {
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+  }
+  article :global(h2) {
+    font-size: 1.35rem;
+    margin-top: 2.2rem;
+  }
+  article :global(h3) {
+    font-family: var(--fonte-texto);
+    font-size: 1.1rem;
+    margin-top: 1.6rem;
+  }
+  article :global(table) {
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+    margin-block: 1rem;
+  }
+  article :global(th),
+  article :global(td) {
+    border: 1px solid var(--cor-borda);
+    padding: 0.4rem 0.7rem;
+    text-align: left;
+  }
+  article :global(th) {
+    background: var(--cor-fundo-elevado);
+  }
+  article :global(code) {
+    background: var(--cor-fundo-elevado);
+    border: 1px solid var(--cor-borda);
+    border-radius: 5px;
+    padding: 0.05rem 0.35rem;
+    font-size: 0.9em;
+  }
+  article :global(pre) {
+    background: var(--cor-fundo-elevado) !important;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    padding: 1rem;
+    overflow-x: auto;
+  }
+  article :global(pre code) {
+    border: 0;
+    padding: 0;
+    background: none;
+  }
+  article :global(a) {
+    color: var(--cor-texto);
+    text-decoration-color: var(--cor-destaque);
+    text-underline-offset: 3px;
+  }
+  article :global(li) {
+    margin-block: 0.25rem;
+  }
+</style>

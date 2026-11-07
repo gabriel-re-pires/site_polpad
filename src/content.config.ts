@@ -39,4 +39,16 @@ const comunidade = defineCollection({
       }),
 });
 
-export const collections = { comunidade };
+/** Docs: src/content/docs/<idioma>/<slug>.md. A chave liga as traduções de um mesmo doc. */
+const docs = defineCollection({
+  loader: glob({ base: './src/content/docs', pattern: '**/*.md' }),
+  schema: z.object({
+    titulo: z.string(),
+    descricao: z.string(),
+    chave: z.string(),
+    ordem: z.number(),
+    fonte: z.url().optional(),
+  }),
+});
+
+export const collections = { comunidade, docs };
