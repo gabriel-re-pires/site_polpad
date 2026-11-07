@@ -46,3 +46,21 @@ export function t(idioma: Idioma, chave: ChaveTexto): string {
 export function langHtml(idioma: Idioma): string {
   return idioma === 'pt-br' ? 'pt-BR' : 'en';
 }
+
+/**
+ * <link rel="alternate" hreflang> da página: ela, a versão no outro idioma e o padrão (pt-BR).
+ * `alternativa` null quando a página não tem tradução de verdade (o seletor cai noutra página).
+ */
+export function linksAlternativos(
+  idioma: Idioma,
+  atual: string,
+  alternativa: string | null,
+): { hreflang: string; href: string }[] {
+  if (alternativa === null) return [];
+  const pt = idioma === 'pt-br' ? atual : alternativa;
+  return [
+    { hreflang: langHtml(idioma), href: atual },
+    { hreflang: langHtml(outroIdioma(idioma)), href: alternativa },
+    { hreflang: 'x-default', href: pt },
+  ];
+}

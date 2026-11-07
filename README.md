@@ -30,14 +30,21 @@ npm run validar    # arquivos, extensões, tamanhos e caminhos citados
 npm run build      # esquema do projeto.yml e licença por tipo
 ```
 
-Num PR, o workflow **Validar comunidade** roda as duas coisas. O guia para
-quem envia está em `CONTRIBUTING.md` e em `/docs/enviar-projeto/`.
+Num PR, dois workflows rodam:
 
-**Antes de aprovar um PR, olhe sempre a aba "Files changed".** O check roda com
-o código do próprio PR: alguém mal-intencionado pode alterar o script de
-validação para dar verde. Um PR de comunidade só deve ter arquivos dentro de
-`comunidade/<nome>/`. Se aparecer qualquer arquivo fora dessa pasta
-(`scripts/`, `src/`, `.github/`, `package*.json`…), não aprove.
+- **Conferir envio** roda o `npm run validar` com o código da `main`
+  (`pull_request_target`). Do PR só entram os arquivos de `comunidade/`, como
+  dados. Por isso o PR não consegue trocar o script para dar verde: se ele
+  mexer em qualquer coisa fora da própria pasta, este check fica vermelho.
+- **Validar comunidade** roda o `npm run build` com o código do PR, para
+  conferir o esquema e a licença.
+
+O guia para quem envia está em `CONTRIBUTING.md` e em `/docs/enviar-projeto/`.
+
+**Antes de aprovar um PR, olhe a aba "Files changed".** Um PR de comunidade só
+deve ter arquivos dentro de `comunidade/<nome>/`. Se aparecer qualquer arquivo
+fora dessa pasta (`scripts/`, `src/`, `.github/`, `package*.json`…), não
+aprove, mesmo que algum check esteja verde.
 
 ## Publicar
 

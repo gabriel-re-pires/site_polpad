@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { caminhoCom, outroIdioma, rota, t } from '../src/lib/i18n';
+import { caminhoCom, linksAlternativos, outroIdioma, rota, t } from '../src/lib/i18n';
 import ptBr from '../src/i18n/pt-br.json';
 import en from '../src/i18n/en.json';
 
@@ -44,5 +44,27 @@ describe('idiomas', () => {
   it('t devolve o texto do idioma', () => {
     expect(t('pt-br', 'nav_baixar')).toBe('Baixar');
     expect(t('en', 'nav_baixar')).toBe('Download');
+  });
+});
+
+describe('linksAlternativos', () => {
+  const pt = 'https://x.dev/site_polpad/baixar/';
+  const en = 'https://x.dev/site_polpad/en/download/';
+
+  it('liga as duas versões da página e usa a em português como padrão', () => {
+    expect(linksAlternativos('pt-br', pt, en)).toEqual([
+      { hreflang: 'pt-BR', href: pt },
+      { hreflang: 'en', href: en },
+      { hreflang: 'x-default', href: pt },
+    ]);
+    expect(linksAlternativos('en', en, pt)).toEqual([
+      { hreflang: 'en', href: en },
+      { hreflang: 'pt-BR', href: pt },
+      { hreflang: 'x-default', href: pt },
+    ]);
+  });
+
+  it('sem tradução de verdade (doc só num idioma), não anuncia nenhuma', () => {
+    expect(linksAlternativos('pt-br', pt, null)).toEqual([]);
   });
 });

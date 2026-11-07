@@ -42,3 +42,26 @@ export function extrairReleases(lista: unknown): InfoRelease | null {
   const comFirmware = publicadas.find((r) => r.firmwareUrl !== null);
   return { versao: publicadas[0].versao, firmwareUrl: comFirmware?.firmwareUrl ?? null };
 }
+
+/** Por quanto tempo a resposta da API vale no navegador (a API sem login dá 60 consultas/hora). */
+export const CACHE_MS = 10 * 60 * 1000;
+
+export function paraCache(info: InfoRelease, agora: number): string {
+  return JSON.stringify({ quando: agora, info });
+}
+
+/** Lê o que paraCache guardou. Vazio, lixo, formato errado ou fora do prazo vira null. */
+export function lerCache(texto: string | null, agora: number): InfoRelease | null {
+  if (!texto) return null;
+  let dados: unknown;
+  try {
+    dados = JSON.parse(texto);
+  } catch {
+    return null;
+  }
+  const { quando, info } = (dados ?? {}) as { quando?: unknown; info?: Partial<InfoRelease> };
+  if (typeof quando !== 'number' || quando > agora || agora - quando > CACHE_MS) return null;
+  if (typeof info?.versao !== 'string' || info.versao === '') return null;
+  if (info.firmwareUrl !== null && typeof info.firmwareUrl !== 'string') return null;
+  return { versao: info.versao, firmwareUrl: info.firmwareUrl };
+}

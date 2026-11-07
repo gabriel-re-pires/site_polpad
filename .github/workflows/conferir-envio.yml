@@ -1,0 +1,37 @@
+name: Conferir envio
+
+# Confere arquivos, tamanhos e caminhos de um PR da comunidade com o código da main.
+# pull_request_target roda o workflow e o script da base: o PR não consegue trocá-los
+# para dar verde. Do PR só entram os arquivos de comunidade/, como dados: nada dele é
+# instalado nem executado (sem npm ci do PR, sem build do PR).
+on:
+  pull_request_target:
+    paths:
+      - 'comunidade/**'
+
+permissions:
+  contents: read
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Dependências da main
+        run: npm ci --ignore-scripts
+      - name: Trazer os arquivos do PR
+        env:
+          NUMERO: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch --no-tags origin "pull/$NUMERO/head:envio"
+          git checkout envio -- comunidade
+      - name: Arquivos, tamanhos e caminhos
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: node scripts/validar-comunidade.mjs --pr-base "origin/$BASE" --pr-head envio
