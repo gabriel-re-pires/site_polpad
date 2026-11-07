@@ -10,16 +10,19 @@ import { parse } from 'yaml';
 
 export const LIMITE_IMAGEM = 1_000_000;
 export const LIMITE_PASTA = 25_000_000;
-export const EXTENSOES = ['.yml', '.md', '.jpg', '.png', '.webp', '.stl', '.3mf', '.step', '.json', '.bin', '.zip'];
-const IMAGENS = ['.jpg', '.png', '.webp'];
+export const EXTENSOES = ['.yml', '.md', '.jpg', '.jpeg', '.png', '.webp', '.stl', '.3mf', '.step', '.json', '.bin', '.zip'];
+const IMAGENS = ['.jpg', '.jpeg', '.png', '.webp'];
 const SLUG_VALIDO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-function arquivosDa(dir) {
+/** Arquivos e links simbólicos da pasta (links não entram: podem apontar para fora dela). */
+function entradasDa(dir) {
   return fs
     .readdirSync(dir, { recursive: true, withFileTypes: true })
-    .filter((e) => e.isFile())
-    .map((e) => path.join(e.parentPath, e.name));
+    .filter((e) => e.isFile() || e.isSymbolicLink())
+    .map((e) => ({ caminho: path.join(e.parentPath, e.name), link: e.isSymbolicLink() }));
 }
+
+const ehImagem = (caminho) => IMAGENS.includes(path.extname(caminho).toLowerCase());
 
 /** Caminho relativo seguro: sem "..", sem caminho absoluto. */
 function caminhoSeguro(caminho) {
@@ -42,14 +45,18 @@ export function conferirPasta(dir) {
   }
 
   let total = 0;
-  for (const arquivo of arquivosDa(dir)) {
+  for (const { caminho: arquivo, link } of entradasDa(dir)) {
     const relativo = path.relative(dir, arquivo).split(path.sep).join('/');
+    if (link) {
+      erro(`${relativo}: link simbólico não é aceito; envie o arquivo de verdade`);
+      continue;
+    }
     const tamanho = fs.statSync(arquivo).size;
     const ext = path.extname(arquivo).toLowerCase();
     total += tamanho;
     if (!EXTENSOES.includes(ext)) {
       erro(`${relativo}: extensão "${ext || '(nenhuma)'}" não é aceita (aceitas: ${EXTENSOES.join(' ')})`);
-    } else if (IMAGENS.includes(ext) && tamanho > LIMITE_IMAGEM) {
+    } else if (ehImagem(arquivo) && tamanho > LIMITE_IMAGEM) {
       erro(`${relativo}: imagem com ${(tamanho / 1e6).toFixed(1)} MB, o limite é 1 MB`);
     }
   }
@@ -74,13 +81,16 @@ export function conferirPasta(dir) {
     return erros;
   }
 
+  const imagens = [...(dados.capa !== undefined ? [dados.capa] : []), ...(Array.isArray(dados.fotos) ? dados.fotos : [])];
+  const arquivosCitados = Array.isArray(dados.arquivos) ? dados.arquivos : [];
   const citados = [
-    ...(dados.capa !== undefined ? [dados.capa] : []),
-    ...(Array.isArray(dados.fotos) ? dados.fotos : []),
-    ...(Array.isArray(dados.arquivos) ? dados.arquivos : []),
+    ...imagens.map((c) => ({ c, imagem: true })),
+    ...arquivosCitados.map((c) => ({ c, imagem: false })),
   ];
-  for (const citado of citados) {
-    if (!caminhoSeguro(citado)) {
+  for (const { c: citado, imagem } of citados) {
+    if (imagem && typeof citado === 'string' && !ehImagem(citado)) {
+      erro(`projeto.yml usa "${citado}" como capa ou foto, mas não é imagem (${IMAGENS.join(' ')})`);
+    } else if (!caminhoSeguro(citado)) {
       erro(`projeto.yml cita "${citado}": o caminho tem de ficar dentro da pasta do projeto`);
     } else if (!fs.existsSync(path.join(dir, citado))) {
       erro(`projeto.yml cita "${citado}", que não existe na pasta`);
@@ -93,6 +103,12 @@ export function conferirPasta(dir) {
     }
   }
   return erros;
+}
+
+/** Erros no formato de anotação do GitHub Actions: aparecem na aba do PR, não só no log. */
+export function formatarParaActions(erros) {
+  const escapar = (s) => s.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+  return erros.map((e) => `::error title=Comunidade::${escapar(e)}`);
 }
 
 /**
@@ -146,6 +162,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   if (erros.length > 0) {
     console.error(`Problemas encontrados (${erros.length}):`);
     for (const e of erros) console.error(`  - ${e}`);
+    if (process.env.GITHUB_ACTIONS) {
+      for (const linha of formatarParaActions(erros)) console.log(linha);
+      if (process.env.GITHUB_STEP_SUMMARY) {
+        const resumo = ['### Problemas no envio', '', ...erros.map((e) => `- ${e}`), ''].join('\n');
+        fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, resumo);
+      }
+    }
     process.exit(1);
   }
   console.log('Comunidade: tudo certo.');

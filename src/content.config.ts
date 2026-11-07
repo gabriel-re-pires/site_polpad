@@ -16,10 +16,10 @@ const comunidade = defineCollection({
         titulo: z.string().min(1).max(80),
         tipo: z.enum(TIPOS),
         autor: z.object({
-          nome: z.string().min(1),
-          github: z.string().optional(),
+          nome: z.string().min(1).max(60),
+          github: z.string().max(39).optional(),
         }),
-        descricao: z.string().min(1),
+        descricao: z.string().min(1).max(3000),
         licenca: z.string(),
         data: z.coerce.date(),
         capa: image(),
@@ -27,7 +27,7 @@ const comunidade = defineCollection({
         arquivos: z.array(z.string()).default([]),
         // Só http(s): um "javascript:" num link viraria script rodando no site.
         links: z
-          .array(z.object({ titulo: z.string().min(1), url: z.url({ protocol: /^https?$/ }) }))
+          .array(z.object({ titulo: z.string().min(1).max(60), url: z.url({ protocol: /^https?$/ }) }))
           .default([]),
         versao_firmware: z.string().optional(),
       })

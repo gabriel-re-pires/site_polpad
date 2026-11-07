@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { conferirCaminhosDoPR, conferirPasta } from '../scripts/validar-comunidade.mjs';
+import { conferirCaminhosDoPR, conferirPasta, formatarParaActions } from '../scripts/validar-comunidade.mjs';
 
 const temporarios = [];
 afterEach(() => {
@@ -116,6 +116,47 @@ describe('conferirPasta', () => {
     const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': 'titulo: [sem fechar' })));
     expect(erros).toHaveLength(1);
     expect(erros[0]).toContain('projeto.yml');
+  });
+
+  it('aceita .jpeg (e .JPG maiúsculo) como imagem', () => {
+    const yml = YML_VALIDO.replace('capa: capa.png', 'capa: capa.jpeg');
+    const dir = projeto('meu-case', basico({ 'projeto.yml': yml, 'capa.jpeg': Buffer.alloc(10), 'foto.JPG': Buffer.alloc(10) }));
+    expect(conferirPasta(dir)).toEqual([]);
+  });
+
+  it('.jpeg acima de 1 MB também é barrado', () => {
+    const yml = YML_VALIDO.replace('capa: capa.png', 'capa: capa.jpeg');
+    const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': yml, 'capa.jpeg': Buffer.alloc(1_000_001) })));
+    expect(erros.some((e) => e.includes('1 MB'))).toBe(true);
+  });
+
+  it('capa ou foto que não é imagem é recusada', () => {
+    const yml = YML_VALIDO.replace('capa: capa.png', 'capa: arquivos/a.stl');
+    const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': yml })));
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('arquivos/a.stl');
+    expect(erros[0]).toContain('imagem');
+  });
+
+  it('link simbólico é recusado', (ctx) => {
+    const dir = projeto('meu-case', basico());
+    try {
+      fs.symlinkSync(path.join(dir, 'capa.png'), path.join(dir, 'atalho.png'));
+    } catch {
+      ctx.skip(); // Windows sem modo de desenvolvedor não cria symlink; o CI (Linux) roda este teste.
+    }
+    const erros = conferirPasta(dir);
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('atalho.png');
+    expect(erros[0]).toContain('link simbólico');
+  });
+});
+
+describe('formatarParaActions', () => {
+  it('vira anotação de erro do GitHub, escapando quebras de linha e %', () => {
+    expect(formatarParaActions(['meu-case: 100% errado\nlinha 2'])).toEqual([
+      '::error title=Comunidade::meu-case: 100%25 errado%0Alinha 2',
+    ]);
   });
 });
 

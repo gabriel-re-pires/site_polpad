@@ -14,10 +14,10 @@ export const DOWNLOADS = {
 /** Lista de releases (mais nova primeiro): a última pode ser só do app, sem firmware. */
 export const API_RELEASES = 'https://api.github.com/repos/gabriel-re-pires/polpad/releases?per_page=10';
 
-/** Arquivos do hardware no repositório do app. */
+/** Arquivos do hardware no repositório do app. Os STL usam raw/ para baixar direto. */
 export const HARDWARE = {
-  caseTopo: `${REPO_POLPAD}/blob/main/hardware/case/case_top.stl`,
-  caseBase: `${REPO_POLPAD}/blob/main/hardware/case/case_bottom.stl`,
+  caseTopo: `${REPO_POLPAD}/raw/main/hardware/case/case_top.stl`,
+  caseBase: `${REPO_POLPAD}/raw/main/hardware/case/case_bottom.stl`,
   gcode: `${REPO_POLPAD}/tree/main/hardware/case/gcode-ender3-v3-se`,
 } as const;
 

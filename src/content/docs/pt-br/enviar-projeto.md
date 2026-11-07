@@ -72,5 +72,5 @@ versao_firmware: 2.1.0            # opcional: versão do firmware testada
 - Cada imagem com até **1 MB**.
 - A pasta inteira com até **25 MB**. Para arquivos maiores, use `links`
   (Printables, Thingiverse, um release no seu GitHub…).
-- Extensões aceitas: `.yml .md .jpg .png .webp .stl .3mf .step .json .bin .zip`.
+- Extensões aceitas: `.yml .md .jpg .jpeg .png .webp .stl .3mf .step .json .bin .zip`.
 - Um projeto por PR, e o PR só pode mexer na pasta do seu projeto.

@@ -65,4 +65,25 @@ describe('conferirDist', () => {
     expect(erros).toHaveLength(1);
     expect(erros[0]).toContain(path.join('en', 'index.html'));
   });
+
+  it('confere links relativos a partir da página onde estão', () => {
+    const dir = distTemporario({
+      'docs/montagem/index.html':
+        '<a href="../../baixar/">ok</a><a href="../baixarr/">quebrado</a><img src="foto.png">' +
+        '<a href="https://x.com">e</a><a href="mailto:a@b.c">m</a><a href="#topo">t</a>',
+      'baixar/index.html': 'ok',
+      'docs/montagem/foto.png': 'png',
+    });
+    const erros = conferirDist(dir, '/site_polpad/');
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('../baixarr/');
+    expect(erros[0]).toContain('não existe');
+  });
+
+  it('link relativo que sai do base é acusado', () => {
+    const dir = distTemporario({ 'index.html': '<a href="../outro-site/">x</a>' });
+    const erros = conferirDist(dir, '/site_polpad/');
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('sem o base');
+  });
 });

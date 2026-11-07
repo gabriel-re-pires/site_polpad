@@ -96,6 +96,28 @@ h3 {
   border-color: var(--cor-texto-suave);
 }
 
+/* "Pular para o conteúdo": só aparece ao receber foco pelo teclado. */
+.pular {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: var(--cor-destaque);
+  color: var(--cor-texto);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pular:focus {
+  top: 0.75rem;
+}
+
+main:focus {
+  outline: none;
+}
+
 .visualmente-oculto {
   position: absolute;
   width: 1px;

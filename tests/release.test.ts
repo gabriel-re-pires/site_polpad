@@ -67,3 +67,15 @@ describe('extrairReleases', () => {
     expect(extrairReleases(null)).toBeNull();
   });
 });
+
+describe('nome do anexo de firmware (mesma regra do app)', () => {
+  const com = (name: string) => extrairRelease({ tag_name: 'v1.0.0', assets: [{ name, browser_download_url: `https://x/${name}` }] });
+  it('aceita sufixos e maiúsculas, como o app', () => {
+    expect(com('firmware-2.2.0-rc1.bin')?.firmwareUrl).toBe('https://x/firmware-2.2.0-rc1.bin');
+    expect(com('Firmware-2.2.0.BIN')?.firmwareUrl).toBe('https://x/Firmware-2.2.0.BIN');
+  });
+  it('continua recusando o que não é .bin de firmware', () => {
+    expect(com('firmware-velho.txt')?.firmwareUrl).toBeNull();
+    expect(com('Polpad-firmware.bin')?.firmwareUrl).toBeNull();
+  });
+});

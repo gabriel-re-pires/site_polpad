@@ -17,7 +17,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
       <img src={`${base}polvo.svg`} alt="" width="32" height="32" />
       <span>Polpad</span>
     </a>
-    <nav aria-label="Principal">
+    <nav aria-label={t(idioma, 'nav_principal')}>
       <a href={rota(idioma, 'docs')}>{t(idioma, 'nav_docs')}</a>
       <a href={rota(idioma, 'comunidade')}>{t(idioma, 'nav_comunidade')}</a>
       <a href={rota(idioma, 'baixar')}>{t(idioma, 'nav_baixar')}</a>

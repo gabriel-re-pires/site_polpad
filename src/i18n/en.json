@@ -77,5 +77,7 @@
   "docs_intro": "How to build, install and use the Polpad, and how to submit your project to the community.",
   "docs_ver_repositorio": "See the source in the repository",
   "docs_navegacao": "Docs",
-  "nao_encontrado_titulo": "Page not found"
+  "nao_encontrado_titulo": "Page not found",
+  "nav_principal": "Main",
+  "pular_conteudo": "Skip to content"
 }

@@ -74,5 +74,5 @@ versao_firmware: 2.1.0             # optional: firmware version tested
 - Each image up to **1 MB**.
 - The whole folder up to **25 MB**. For bigger files, use `links`
   (Printables, Thingiverse, a release on your GitHub…).
-- Accepted extensions: `.yml .md .jpg .png .webp .stl .3mf .step .json .bin .zip`.
+- Accepted extensions: `.yml .md .jpg .jpeg .png .webp .stl .3mf .step .json .bin .zip`.
 - One project per PR, and the PR may only touch your project's folder.
