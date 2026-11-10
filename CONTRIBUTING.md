@@ -10,12 +10,13 @@ Os projetos da comunidade do Polpad ficam em `comunidade/`, um por pasta.
 4. Abra um pull request. Uma checagem automática confere o envio.
 5. Depois da revisão, o projeto aparece no site.
 
-Limites: imagens até 1 MB, pasta até 25 MB, um projeto por PR. Cada tipo de
+Limites: imagens até 1 MB, pasta até 25 MB e 30 arquivos, sem `.zip`, `.bin` só
+em firmware, um projeto por PR. Cada tipo de
 projeto aceita só algumas licenças.
 
 O passo a passo completo, com o modelo do `projeto.yml` e as licenças de cada
 tipo, está em
-<https://gabriel-re-pires.github.io/site_polpad/docs/enviar-projeto/>.
+<https://polpad.com.br/docs/enviar-projeto/>.
 
 ## Mudanças no site
 

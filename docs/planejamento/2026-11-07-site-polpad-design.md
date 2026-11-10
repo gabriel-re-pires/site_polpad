@@ -236,14 +236,8 @@ PRs de fork rodam com permissão só de leitura (padrão do GitHub para
 
 ### Quando comprar `polpad.com.br`
 
-1. Criar `public/CNAME` com `polpad.com.br`, remover o `base` e trocar
-   `site` para `https://polpad.com.br`.
-2. No registro.br, configurar o DNS:
-   - registros **A** de `polpad.com.br` para `185.199.108.153`,
-     `185.199.109.153`, `185.199.110.153` e `185.199.111.153`;
-   - **CNAME** de `www` para `gabriel-re-pires.github.io`.
-3. Em Settings → Pages, informar o domínio e marcar "Enforce HTTPS".
-4. Verificar o domínio na conta do GitHub, para ninguém sequestrá-lo.
+Feito: o site saiu do GitHub Pages e foi para a Vercel. Os passos estão em
+`docs/deploy.md`.
 
 ## 9. Fora da v1
 

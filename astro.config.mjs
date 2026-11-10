@@ -10,4 +10,6 @@ export default defineConfig({
     defaultLocale: 'pt-br',
     routing: { prefixDefaultLocale: false },
   },
+  // Scripts sempre em arquivo: a CSP da Vercel não libera script inline.
+  vite: { build: { assetsInlineLimit: 0 } },
 });

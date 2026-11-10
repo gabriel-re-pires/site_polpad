@@ -1,7 +1,7 @@
 export const TIPOS = ['case', 'perfil', 'build', 'firmware'] as const;
 export type TipoProjeto = (typeof TIPOS)[number];
 
-/** Licenças (identificadores SPDX) aceitas para cada tipo de projeto. */
+// Identificadores SPDX.
 export const LICENCAS_POR_TIPO: Record<TipoProjeto, readonly string[]> = {
   case: ['CC-BY-4.0', 'CC-BY-SA-4.0', 'CERN-OHL-S-2.0'],
   build: ['CC-BY-4.0', 'CC-BY-SA-4.0', 'CERN-OHL-S-2.0'],
@@ -17,7 +17,6 @@ export const SLUG_VALIDO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const RAW = 'https://github.com/gabriel-re-pires/site_polpad/raw/main/comunidade';
 
-/** Link direto para baixar um arquivo de um projeto da comunidade. */
 export function urlArquivo(slug: string, arquivo: string): string {
   const partes = [slug, ...arquivo.split('/')].map(encodeURIComponent);
   return `${RAW}/${partes.join('/')}`;

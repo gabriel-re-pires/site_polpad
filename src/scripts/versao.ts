@@ -3,7 +3,7 @@ import { extrairReleases, lerCache, paraCache, type InfoRelease } from '../lib/r
 
 const CHAVE = 'polpad-releases';
 
-/** sessionStorage pode faltar ou recusar (aba anônima, cookies bloqueados): aí só não há cache. */
+// sessionStorage pode falhar (aba anônima, cookies bloqueados): aí fica sem cache.
 function doCache(): InfoRelease | null {
   try {
     return lerCache(sessionStorage.getItem(CHAVE), Date.now());
@@ -15,9 +15,7 @@ function doCache(): InfoRelease | null {
 function guardar(info: InfoRelease): void {
   try {
     sessionStorage.setItem(CHAVE, paraCache(info, Date.now()));
-  } catch {
-    // Sem cache: a próxima página consulta a API de novo.
-  }
+  } catch {}
 }
 
 async function daApi(): Promise<InfoRelease | null> {
@@ -31,12 +29,7 @@ async function daApi(): Promise<InfoRelease | null> {
   return info;
 }
 
-/**
- * Busca as releases do Polpad (ou usa a resposta guardada há menos de 10 min) e preenche a página:
- * [data-versao] recebe "vX.Y.Z" e aparece; [data-firmware] passa a apontar para o .bin.
- * Em qualquer falha (rede, limite da API, resposta estranha) a página fica como está:
- * os links de reserva continuam funcionando.
- */
+// Em qualquer falha a página fica como está, com os links de reserva.
 export async function atualizarVersao(raiz: ParentNode = document): Promise<void> {
   try {
     const info = doCache() ?? (await daApi());
@@ -52,9 +45,7 @@ export async function atualizarVersao(raiz: ParentNode = document): Promise<void
         el.href = info.firmwareUrl;
       }
     }
-  } catch {
-    // Sem rede ou API fora: mantém os links de reserva.
-  }
+  } catch {}
 }
 
 atualizarVersao();

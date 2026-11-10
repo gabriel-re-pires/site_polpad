@@ -1,9 +1,7 @@
 name: Conferir envio
 
-# Confere arquivos, tamanhos e caminhos de um PR da comunidade com o código da main.
-# pull_request_target roda o workflow e o script da base: o PR não consegue trocá-los
-# para dar verde. Do PR só entram os arquivos de comunidade/, como dados: nada dele é
-# instalado nem executado (sem npm ci do PR, sem build do PR).
+# pull_request_target roda o workflow e o script da main: o PR não consegue trocá-los.
+# Do PR só entram os arquivos de comunidade/, como dados; nada dele é executado.
 on:
   pull_request_target:
     paths:
@@ -15,6 +13,7 @@ permissions:
 jobs:
   conferir:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
