@@ -1,6 +1,5 @@
 // Confere os projetos em comunidade/ antes de entrarem no site.
 // Uso: node scripts/validar-comunidade.mjs [--pr-base <ref> [--pr-head <ref>]]
-// Com --pr-base, também confere se o PR só mexe numa pasta de projeto.
 // O esquema do projeto.yml (campos, tipo, licença) é conferido pelo build do Astro.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,11 +9,30 @@ import { parse } from 'yaml';
 
 export const LIMITE_IMAGEM = 1_000_000;
 export const LIMITE_PASTA = 25_000_000;
-export const EXTENSOES = ['.yml', '.md', '.jpg', '.jpeg', '.png', '.webp', '.stl', '.3mf', '.step', '.json', '.bin', '.zip'];
+export const LIMITE_ARQUIVOS = 30;
+// Sem .zip, .exe e afins: um compactado pode esconder qualquer coisa.
+export const EXTENSOES = ['.yml', '.md', '.jpg', '.jpeg', '.png', '.webp', '.stl', '.3mf', '.step', '.json', '.bin'];
 const IMAGENS = ['.jpg', '.jpeg', '.png', '.webp'];
+const TEXTO = ['.yml', '.md', '.json', '.step'];
 const SLUG_VALIDO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-/** Arquivos e links simbólicos da pasta (links não entram: podem apontar para fora dela). */
+const comeca = (b, ...bytes) => bytes.every((x, i) => x === null || b[i] === x);
+const ascii = (b, inicio, fim) => b.subarray(inicio, fim).toString('latin1');
+const ehTexto = (b) => !b.includes(0);
+
+// O conteúdo tem de bater com a extensão: um .exe renomeado para .png não passa.
+// Os binários só precisam do começo do arquivo (e do tamanho, no STL).
+const CONTEUDO = {
+  '.png': (b) => comeca(b, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a),
+  '.jpg': (b) => comeca(b, 0xff, 0xd8, 0xff),
+  '.jpeg': (b) => comeca(b, 0xff, 0xd8, 0xff),
+  '.webp': (b) => ascii(b, 0, 4) === 'RIFF' && ascii(b, 8, 12) === 'WEBP',
+  '.3mf': (b) => comeca(b, 0x50, 0x4b, 0x03, 0x04),
+  '.stl': (b, tamanho) =>
+    (ehTexto(b) && /^\s*solid/.test(ascii(b, 0, 512))) ||
+    (b.length >= 84 && tamanho >= 84 + 50 * b.readUInt32LE(80)),
+};
+
 function entradasDa(dir) {
   return fs
     .readdirSync(dir, { recursive: true, withFileTypes: true })
@@ -24,7 +42,6 @@ function entradasDa(dir) {
 
 const ehImagem = (caminho) => IMAGENS.includes(path.extname(caminho).toLowerCase());
 
-/** Caminho relativo seguro: sem "..", sem caminho absoluto. */
 function caminhoSeguro(caminho) {
   return (
     typeof caminho === 'string' &&
@@ -32,6 +49,22 @@ function caminhoSeguro(caminho) {
     !path.isAbsolute(caminho) &&
     !caminho.split(/[\\/]/).includes('..')
   );
+}
+
+function lerComeco(arquivo, bytes) {
+  const fd = fs.openSync(arquivo, 'r');
+  try {
+    const b = Buffer.alloc(bytes);
+    return b.subarray(0, fs.readSync(fd, b, 0, bytes, 0));
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+function conteudoValido(arquivo, ext, tamanho) {
+  if (TEXTO.includes(ext)) return ehTexto(fs.readFileSync(arquivo));
+  if (!CONTEUDO[ext]) return true;
+  return CONTEUDO[ext](lerComeco(arquivo, 512), tamanho);
 }
 
 /** Erros de uma pasta comunidade/<slug>/, no formato "<slug>: <motivo>". */
@@ -44,8 +77,14 @@ export function conferirPasta(dir) {
     erro('nome da pasta (slug) inválido: use só letras minúsculas, números e hífen');
   }
 
+  const entradas = entradasDa(dir);
+  if (entradas.length > LIMITE_ARQUIVOS) {
+    erro(`a pasta tem ${entradas.length} arquivos, o limite é ${LIMITE_ARQUIVOS}`);
+  }
+
   let total = 0;
-  for (const { caminho: arquivo, link } of entradasDa(dir)) {
+  const binarios = [];
+  for (const { caminho: arquivo, link } of entradas) {
     const relativo = path.relative(dir, arquivo).split(path.sep).join('/');
     if (link) {
       erro(`${relativo}: link simbólico não é aceito; envie o arquivo de verdade`);
@@ -56,9 +95,14 @@ export function conferirPasta(dir) {
     total += tamanho;
     if (!EXTENSOES.includes(ext)) {
       erro(`${relativo}: extensão "${ext || '(nenhuma)'}" não é aceita (aceitas: ${EXTENSOES.join(' ')})`);
-    } else if (ehImagem(arquivo) && tamanho > LIMITE_IMAGEM) {
-      erro(`${relativo}: imagem com ${(tamanho / 1e6).toFixed(1)} MB, o limite é 1 MB`);
+      continue;
     }
+    if (ehImagem(arquivo) && tamanho > LIMITE_IMAGEM) {
+      erro(`${relativo}: imagem com ${(tamanho / 1e6).toFixed(1)} MB, o limite é 1 MB`);
+    } else if (tamanho <= LIMITE_PASTA && !conteudoValido(arquivo, ext, tamanho)) {
+      erro(`${relativo}: o conteúdo não é um arquivo ${ext} de verdade`);
+    }
+    if (ext === '.bin') binarios.push(relativo);
   }
   if (total > LIMITE_PASTA) {
     erro(`a pasta tem ${(total / 1e6).toFixed(1)} MB, o limite é 25 MB (use "links" para arquivos grandes)`);
@@ -79,6 +123,10 @@ export function conferirPasta(dir) {
   if (typeof dados !== 'object' || dados === null) {
     erro('projeto.yml está vazio ou não é um mapa de campos');
     return erros;
+  }
+
+  if (binarios.length > 0 && dados.tipo !== 'firmware') {
+    erro(`${binarios.join(', ')}: arquivo .bin só é aceito em projeto do tipo firmware`);
   }
 
   const imagens = [...(dados.capa !== undefined ? [dados.capa] : []), ...(Array.isArray(dados.fotos) ? dados.fotos : [])];
@@ -105,16 +153,15 @@ export function conferirPasta(dir) {
   return erros;
 }
 
-/** Erros no formato de anotação do GitHub Actions: aparecem na aba do PR, não só no log. */
+/** Anotações do GitHub Actions: aparecem na aba do PR, não só no log. */
 export function formatarParaActions(erros) {
   const escapar = (s) => s.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
   return erros.map((e) => `::error title=Comunidade::${escapar(e)}`);
 }
 
 /**
- * Arquivos que o PR (`cabeca`) muda em relação a `base`. Sem detectar renomeação: mover um
- * arquivo de fora para dentro de comunidade/ tem de aparecer também pelo caminho antigo.
- * No pull_request_target o checkout é a base, então o commit do PR vem por `cabeca`.
+ * Arquivos que o PR muda. Sem detectar renomeação: mover um arquivo de fora para dentro
+ * de comunidade/ tem de aparecer também pelo caminho antigo.
  */
 export function arquivosDoPR(base, cwd, cabeca = 'HEAD') {
   const saida = execFileSync('git', ['diff', '--no-renames', '--name-only', `${base}...${cabeca}`], {

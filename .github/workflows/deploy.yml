@@ -1,0 +1,74 @@
+name: Deploy
+
+# A Vercel não tem acesso ao GitHub: o build roda aqui e só o resultado vai para lá.
+# Dois jobs: "build" roda o código do projeto e das dependências, sem token nenhum.
+# "enviar" só baixa o resultado e manda para a Vercel; usa o ambiente "production"
+# (só a main) e não instala nada do projeto.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix ferramentas/vercel --ignore-scripts
+      - run: npm run validar
+      - run: npm test
+      # Os ajustes do projeto vêm do vercel.json; o vercel build só exige o arquivo.
+      - run: |
+          mkdir -p .vercel
+          echo '{"projectId":"local","orgId":"local","settings":{"framework":"astro"}}' > .vercel/project.json
+      - run: ferramentas/vercel/node_modules/.bin/vercel build --prod
+        env:
+          VERCEL_TELEMETRY_DISABLED: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  enviar:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://polpad.com.br
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: ferramentas/vercel
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm ci --prefix ferramentas/vercel --ignore-scripts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site
+          path: .vercel/output
+      - run: ferramentas/vercel/node_modules/.bin/vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_TELEMETRY_DISABLED: 1

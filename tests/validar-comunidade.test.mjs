@@ -21,7 +21,6 @@ arquivos:
   - arquivos/a.stl
 `;
 
-/** Cria comunidade/<slug>/ numa pasta temporária com os arquivos dados. */
 function projeto(slug, arquivos) {
   const raiz = fs.mkdtempSync(path.join(os.tmpdir(), 'comunidade-'));
   temporarios.push(raiz);
@@ -35,9 +34,17 @@ function projeto(slug, arquivos) {
   return dir;
 }
 
+const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const JPEG = [0xff, 0xd8, 0xff];
+const imagem = (assinatura, tamanho = 10) => {
+  const b = Buffer.alloc(tamanho);
+  b.set(assinatura);
+  return b;
+};
+
 const basico = (extra = {}) => ({
   'projeto.yml': YML_VALIDO,
-  'capa.png': Buffer.alloc(10),
+  'capa.png': imagem(PNG),
   'arquivos/a.stl': 'solid',
   ...extra,
 });
@@ -67,14 +74,14 @@ describe('conferirPasta', () => {
   });
 
   it('imagem acima de 1 MB', () => {
-    const erros = conferirPasta(projeto('meu-case', basico({ 'capa.png': Buffer.alloc(1_000_001) })));
+    const erros = conferirPasta(projeto('meu-case', basico({ 'capa.png': imagem(PNG, 1_000_001) })));
     expect(erros).toHaveLength(1);
     expect(erros[0]).toContain('1 MB');
   });
 
   it('pasta acima de 25 MB', () => {
     const grandes = {};
-    for (let i = 0; i < 3; i++) grandes[`arquivos/p${i}.stl`] = Buffer.alloc(9_000_000);
+    for (let i = 0; i < 3; i++) grandes[`arquivos/p${i}.stl`] = Buffer.from('solid'.padEnd(9_000_000));
     const erros = conferirPasta(projeto('meu-case', basico(grandes)));
     expect(erros.some((e) => e.includes('25 MB'))).toBe(true);
   });
@@ -90,7 +97,7 @@ describe('conferirPasta', () => {
   });
 
   it('sem projeto.yml', () => {
-    const erros = conferirPasta(projeto('meu-case', { 'capa.png': Buffer.alloc(10) }));
+    const erros = conferirPasta(projeto('meu-case', { 'capa.png': imagem(PNG) }));
     expect(erros).toHaveLength(1);
     expect(erros[0]).toContain('projeto.yml');
   });
@@ -120,13 +127,13 @@ describe('conferirPasta', () => {
 
   it('aceita .jpeg (e .JPG maiúsculo) como imagem', () => {
     const yml = YML_VALIDO.replace('capa: capa.png', 'capa: capa.jpeg');
-    const dir = projeto('meu-case', basico({ 'projeto.yml': yml, 'capa.jpeg': Buffer.alloc(10), 'foto.JPG': Buffer.alloc(10) }));
+    const dir = projeto('meu-case', basico({ 'projeto.yml': yml, 'capa.jpeg': imagem(JPEG), 'foto.JPG': imagem(JPEG) }));
     expect(conferirPasta(dir)).toEqual([]);
   });
 
   it('.jpeg acima de 1 MB também é barrado', () => {
     const yml = YML_VALIDO.replace('capa: capa.png', 'capa: capa.jpeg');
-    const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': yml, 'capa.jpeg': Buffer.alloc(1_000_001) })));
+    const erros = conferirPasta(projeto('meu-case', basico({ 'projeto.yml': yml, 'capa.jpeg': imagem(JPEG, 1_000_001) })));
     expect(erros.some((e) => e.includes('1 MB'))).toBe(true);
   });
 
@@ -143,12 +150,65 @@ describe('conferirPasta', () => {
     try {
       fs.symlinkSync(path.join(dir, 'capa.png'), path.join(dir, 'atalho.png'));
     } catch {
-      ctx.skip(); // Windows sem modo de desenvolvedor não cria symlink; o CI (Linux) roda este teste.
+      ctx.skip(); // Windows sem modo de desenvolvedor não cria symlink.
     }
     const erros = conferirPasta(dir);
     expect(erros).toHaveLength(1);
     expect(erros[0]).toContain('atalho.png');
     expect(erros[0]).toContain('link simbólico');
+  });
+
+  it('arquivo com conteúdo diferente da extensão é recusado', () => {
+    const erros = conferirPasta(projeto('meu-case', basico({ 'capa.png': Buffer.from('MZ executável') })));
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('capa.png');
+    expect(erros[0]).toContain('conteúdo');
+  });
+
+  it('STL binário com tamanho coerente passa', () => {
+    const stl = Buffer.alloc(84 + 50 * 2);
+    stl.writeUInt32LE(2, 80);
+    expect(conferirPasta(projeto('meu-case', basico({ 'arquivos/a.stl': stl })))).toEqual([]);
+  });
+
+  it('STL binário com bytes sobrando no fim passa; curto demais não', () => {
+    const sobra = Buffer.alloc(84 + 50 * 2 + 3);
+    sobra.writeUInt32LE(2, 80);
+    expect(conferirPasta(projeto('meu-case', basico({ 'arquivos/a.stl': sobra })))).toEqual([]);
+    const curto = Buffer.alloc(84 + 50);
+    curto.writeUInt32LE(2, 80);
+    expect(conferirPasta(projeto('meu-case', basico({ 'arquivos/a.stl': curto })))).toHaveLength(1);
+  });
+
+  it('.zip não é aceito', () => {
+    const erros = conferirPasta(projeto('meu-case', basico({ 'tudo.zip': Buffer.from([0x50, 0x4b, 3, 4]) })));
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('extensão');
+  });
+
+  it('texto com byte nulo é recusado', () => {
+    const erros = conferirPasta(projeto('meu-case', basico({ 'leia.md': Buffer.from([0x61, 0, 0x62]) })));
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('leia.md');
+  });
+
+  it('.bin fora de projeto de firmware é recusado', () => {
+    const erros = conferirPasta(projeto('meu-case', basico({ 'fw.bin': Buffer.alloc(16) })));
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('firmware');
+  });
+
+  it('.bin em projeto de firmware passa', () => {
+    const yml = YML_VALIDO.replace('tipo: case', 'tipo: firmware').replace('CC-BY-4.0', 'GPL-3.0-or-later');
+    expect(conferirPasta(projeto('meu-fw', basico({ 'projeto.yml': yml, 'fw.bin': Buffer.alloc(16) })))).toEqual([]);
+  });
+
+  it('mais arquivos que o limite é recusado', () => {
+    const muitos = {};
+    for (let i = 0; i < 30; i++) muitos[`arquivos/p${i}.stl`] = 'solid';
+    const erros = conferirPasta(projeto('meu-case', basico(muitos)));
+    expect(erros).toHaveLength(1);
+    expect(erros[0]).toContain('limite é 30');
   });
 });
 

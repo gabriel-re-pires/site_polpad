@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "CLI da Vercel com versão travada, usada só pelo workflow de deploy",
+  "dependencies": {
+    "vercel": "64.7.0"
+  }
+}

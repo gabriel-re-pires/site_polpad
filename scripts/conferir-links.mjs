@@ -1,10 +1,8 @@
-// Confere os links internos do site gerado (dist/).
-// Uso: node scripts/conferir-links.mjs   (roda no fim do `npm run build`)
+// Confere os links internos de dist/. Roda no fim do `npm run build`.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-/** Todo href/src que começa com uma barra só (link interno absoluto). */
 export function linksInternos(html) {
   const links = [];
   for (const m of html.matchAll(/\b(?:href|src)\s*=\s*["']([^"']*)["']/gi)) {
@@ -14,7 +12,6 @@ export function linksInternos(html) {
   return links;
 }
 
-/** Todo href/src interno, absoluto ou relativo (fora esquemas como https:, mailto: e âncoras). */
 function linksDaPagina(html) {
   const links = [];
   for (const m of html.matchAll(/\b(?:href|src)\s*=\s*["']([^"']*)["']/gi)) {

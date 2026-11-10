@@ -6,7 +6,6 @@ export const IDIOMAS: readonly Idioma[] = ['pt-br', 'en'];
 
 export type ChaveRota = 'inicio' | 'baixar' | 'comunidade' | 'docs';
 
-/** Segmento de URL de cada rota principal, por idioma. */
 export const ROTAS: Record<ChaveRota, Record<Idioma, string>> = {
   inicio: { 'pt-br': '', en: '' },
   baixar: { 'pt-br': 'baixar', en: 'download' },
@@ -14,7 +13,6 @@ export const ROTAS: Record<ChaveRota, Record<Idioma, string>> = {
   docs: { 'pt-br': 'docs', en: 'docs' },
 };
 
-/** Monta um caminho interno: base + prefixo do idioma + partes, sempre terminando em "/". */
 export function caminhoCom(base: string, idioma: Idioma, ...partes: string[]): string {
   const segmentos = [base, idioma === 'en' ? 'en' : '', ...partes]
     .flatMap((p) => p.split('/'))
@@ -42,15 +40,11 @@ export function t(idioma: Idioma, chave: ChaveTexto): string {
   return TEXTOS[idioma][chave];
 }
 
-/** Código de idioma para o atributo lang do HTML. */
 export function langHtml(idioma: Idioma): string {
   return idioma === 'pt-br' ? 'pt-BR' : 'en';
 }
 
-/**
- * <link rel="alternate" hreflang> da página: ela, a versão no outro idioma e o padrão (pt-BR).
- * `alternativa` null quando a página não tem tradução de verdade (o seletor cai noutra página).
- */
+/** `alternativa` é null quando a página não tem tradução de verdade. */
 export function linksAlternativos(
   idioma: Idioma,
   atual: string,

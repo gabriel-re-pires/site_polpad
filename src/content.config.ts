@@ -3,7 +3,6 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { LICENCAS_POR_TIPO, licencaPermitida, TIPOS } from './lib/comunidade';
 
-/** Projetos da comunidade: uma pasta por projeto em comunidade/<slug>/projeto.yml. */
 const comunidade = defineCollection({
   loader: glob({
     base: './comunidade',
@@ -42,7 +41,7 @@ const comunidade = defineCollection({
       }),
 });
 
-/** Docs: src/content/docs/<idioma>/<slug>.md. A chave liga as traduções de um mesmo doc. */
+// "chave" liga as traduções de um mesmo doc.
 const docs = defineCollection({
   loader: glob({ base: './src/content/docs', pattern: '**/*.md' }),
   schema: z.object({

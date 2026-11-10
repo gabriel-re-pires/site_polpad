@@ -1,9 +1,7 @@
 name: Validar comunidade
 
-# Roda em PRs (inclusive de forks) que mexem em comunidade/.
-# Só lê o repositório e não usa segredos. Roda com o código do PR, por isso confere
-# só o que precisa do build (esquema e licença do projeto.yml, imagens). Arquivos,
-# tamanhos e caminhos são conferidos em conferir-envio.yml, com o código da main.
+# Roda com o código do PR, sem segredos e só com leitura. Confere o que depende do
+# build (esquema, licença, imagens). Arquivos e caminhos ficam em conferir-envio.yml.
 on:
   pull_request:
     paths:
@@ -15,6 +13,7 @@ permissions:
 jobs:
   validar:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

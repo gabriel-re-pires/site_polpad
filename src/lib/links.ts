@@ -1,6 +1,5 @@
 import { rota, type Idioma } from './i18n';
 
-/** Slug de cada doc por idioma (nome do arquivo em src/content/docs/<idioma>/). */
 const SLUGS_DOCS = {
   montagem: { 'pt-br': 'montagem', en: 'assembly' },
   instalar: { 'pt-br': 'instalar', en: 'install' },

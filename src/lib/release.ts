@@ -3,10 +3,9 @@ export interface InfoRelease {
   firmwareUrl: string | null;
 }
 
-/** A mesma regra do app (polpad/src/polpad/device/firmware_release.py, ASSET_PATTERN). */
+// Mesma regra do app: polpad/src/polpad/device/firmware_release.py (ASSET_PATTERN).
 const NOME_FIRMWARE = /^firmware[\w.-]*\.bin$/i;
 
-/** Lê a resposta de /releases/latest da API do GitHub. Qualquer coisa inesperada vira null. */
 export function extrairRelease(dados: unknown): InfoRelease | null {
   if (typeof dados !== 'object' || dados === null) return null;
   const { tag_name, assets } = dados as { tag_name?: unknown; assets?: unknown };
@@ -28,10 +27,7 @@ export function extrairRelease(dados: unknown): InfoRelease | null {
   return { versao: tag_name.replace(/^v/, ''), firmwareUrl };
 }
 
-/**
- * Lê a resposta de /releases (mais nova primeiro). A versão vem da release publicada mais
- * recente; o firmware, da mais recente que tem um .bin — releases só do app não trazem firmware.
- */
+// Releases só do app não trazem firmware: o .bin vem da mais recente que tiver um.
 export function extrairReleases(lista: unknown): InfoRelease | null {
   if (!Array.isArray(lista)) return null;
   const publicadas = lista
@@ -43,14 +39,13 @@ export function extrairReleases(lista: unknown): InfoRelease | null {
   return { versao: publicadas[0].versao, firmwareUrl: comFirmware?.firmwareUrl ?? null };
 }
 
-/** Por quanto tempo a resposta da API vale no navegador (a API sem login dá 60 consultas/hora). */
+// A API sem login dá 60 consultas/hora por IP.
 export const CACHE_MS = 10 * 60 * 1000;
 
 export function paraCache(info: InfoRelease, agora: number): string {
   return JSON.stringify({ quando: agora, info });
 }
 
-/** Lê o que paraCache guardou. Vazio, lixo, formato errado ou fora do prazo vira null. */
 export function lerCache(texto: string | null, agora: number): InfoRelease | null {
   if (!texto) return null;
   let dados: unknown;
