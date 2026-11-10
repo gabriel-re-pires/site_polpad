@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import { rota, t } from '../lib/i18n';
 ---
 
-<Base idioma="pt-br" titulo={t('pt-br', 'nao_encontrado_titulo')} alternativa={rota('en', 'inicio')}>
+<Base idioma="pt-br" titulo={t('pt-br', 'nao_encontrado_titulo')} alternativa={rota('en', 'inicio')} indexar={false}>
   <section class="conteiner">
     <p class="codigo" aria-hidden="true">404</p>
     <h1>{t('pt-br', 'nao_encontrado_titulo')}</h1>

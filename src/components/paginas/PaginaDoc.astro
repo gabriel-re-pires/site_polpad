@@ -16,7 +16,14 @@ const traduzido = traducao(await getCollection('docs'), doc, outro);
 const alternativa = traduzido ? urlDoc(outro, traduzido) : rota(outro, 'docs');
 ---
 
-<DocsLayout idioma={idioma} titulo={doc.data.titulo} descricao={doc.data.descricao} alternativa={alternativa} atual={doc}>
+<DocsLayout
+  idioma={idioma}
+  titulo={doc.data.titulo}
+  descricao={doc.data.descricao}
+  alternativa={alternativa}
+  traduzida={Boolean(traduzido)}
+  atual={doc}
+>
   <h1>{doc.data.titulo}</h1>
   <Content />
   {

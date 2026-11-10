@@ -1,7 +1,9 @@
 name: Validar comunidade
 
 # Roda em PRs (inclusive de forks) que mexem em comunidade/.
-# Só lê o repositório e não usa segredos.
+# Só lê o repositório e não usa segredos. Roda com o código do PR, por isso confere
+# só o que precisa do build (esquema e licença do projeto.yml, imagens). Arquivos,
+# tamanhos e caminhos são conferidos em conferir-envio.yml, com o código da main.
 on:
   pull_request:
     paths:
@@ -15,14 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Arquivos, tamanhos e caminhos do PR
-        run: node scripts/validar-comunidade.mjs --pr-base "origin/${{ github.base_ref }}"
       - name: Esquema e licença (build)
         run: npm run build

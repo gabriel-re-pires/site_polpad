@@ -9,15 +9,16 @@ interface Props {
   titulo: string;
   descricao?: string;
   alternativa: string;
+  traduzida?: boolean;
   /** Doc aberto agora; ausente no índice. */
   atual?: CollectionEntry<'docs'>;
 }
 
-const { idioma, titulo, descricao, alternativa, atual } = Astro.props;
+const { idioma, titulo, descricao, alternativa, traduzida, atual } = Astro.props;
 const lista = docsDoIdioma(await getCollection('docs'), idioma);
 ---
 
-<Base idioma={idioma} titulo={titulo} descricao={descricao} alternativa={alternativa}>
+<Base idioma={idioma} titulo={titulo} descricao={descricao} alternativa={alternativa} traduzida={traduzida}>
   <div class="conteiner docs">
     <nav aria-label={t(idioma, 'docs_navegacao')}>
       <ul>

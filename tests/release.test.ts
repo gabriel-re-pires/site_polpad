@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extrairRelease, extrairReleases } from '../src/lib/release';
+import { CACHE_MS, extrairRelease, extrairReleases, lerCache, paraCache } from '../src/lib/release';
 
 describe('extrairRelease', () => {
   it('pega a versão sem o v e o link do firmware', () => {
@@ -77,5 +77,31 @@ describe('nome do anexo de firmware (mesma regra do app)', () => {
   it('continua recusando o que não é .bin de firmware', () => {
     expect(com('firmware-velho.txt')?.firmwareUrl).toBeNull();
     expect(com('Polpad-firmware.bin')?.firmwareUrl).toBeNull();
+  });
+});
+
+describe('cache da versão', () => {
+  const info = { versao: '0.7.2', firmwareUrl: 'https://x/f.bin' };
+  const agora = 1_000_000;
+
+  it('devolve o que foi guardado enquanto está dentro do prazo', () => {
+    expect(lerCache(paraCache(info, agora), agora + CACHE_MS - 1)).toEqual(info);
+  });
+
+  it('ignora o que passou do prazo ou veio do futuro', () => {
+    expect(lerCache(paraCache(info, agora), agora + CACHE_MS + 1)).toBeNull();
+    expect(lerCache(paraCache(info, agora + 5000), agora)).toBeNull();
+  });
+
+  it('ignora vazio, lixo e formato errado', () => {
+    expect(lerCache(null, agora)).toBeNull();
+    expect(lerCache('{nada', agora)).toBeNull();
+    expect(lerCache(JSON.stringify({ quando: agora, info: { versao: 7 } }), agora)).toBeNull();
+    expect(lerCache(JSON.stringify({ quando: agora, info: { versao: '1.0.0', firmwareUrl: 3 } }), agora)).toBeNull();
+  });
+
+  it('guarda também quando não há firmware', () => {
+    const semFirmware = { versao: '0.7.3', firmwareUrl: null };
+    expect(lerCache(paraCache(semFirmware, agora), agora)).toEqual(semFirmware);
   });
 });

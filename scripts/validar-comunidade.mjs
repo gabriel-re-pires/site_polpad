@@ -1,5 +1,5 @@
 // Confere os projetos em comunidade/ antes de entrarem no site.
-// Uso: node scripts/validar-comunidade.mjs [--pr-base <ref>]
+// Uso: node scripts/validar-comunidade.mjs [--pr-base <ref> [--pr-head <ref>]]
 // Com --pr-base, também confere se o PR só mexe numa pasta de projeto.
 // O esquema do projeto.yml (campos, tipo, licença) é conferido pelo build do Astro.
 import fs from 'node:fs';
@@ -112,11 +112,12 @@ export function formatarParaActions(erros) {
 }
 
 /**
- * Arquivos que o PR muda em relação a `base`. Sem detectar renomeação: mover um arquivo de
- * fora para dentro de comunidade/ tem de aparecer também pelo caminho antigo.
+ * Arquivos que o PR (`cabeca`) muda em relação a `base`. Sem detectar renomeação: mover um
+ * arquivo de fora para dentro de comunidade/ tem de aparecer também pelo caminho antigo.
+ * No pull_request_target o checkout é a base, então o commit do PR vem por `cabeca`.
  */
-export function arquivosDoPR(base, cwd) {
-  const saida = execFileSync('git', ['diff', '--no-renames', '--name-only', `${base}...HEAD`], {
+export function arquivosDoPR(base, cwd, cabeca = 'HEAD') {
+  const saida = execFileSync('git', ['diff', '--no-renames', '--name-only', `${base}...${cabeca}`], {
     cwd,
     encoding: 'utf8',
   });
@@ -154,9 +155,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     else erros.push(`comunidade/${entrada.name}: arquivo solto; cada projeto fica na sua própria pasta`);
   }
 
-  const i = process.argv.indexOf('--pr-base');
-  if (i !== -1) {
-    erros.push(...conferirCaminhosDoPR(arquivosDoPR(process.argv[i + 1], raiz)));
+  const opcao = (nome) => {
+    const i = process.argv.indexOf(nome);
+    return i === -1 ? undefined : process.argv[i + 1];
+  };
+  const prBase = opcao('--pr-base');
+  if (prBase) {
+    erros.push(...conferirCaminhosDoPR(arquivosDoPR(prBase, raiz, opcao('--pr-head'))));
   }
 
   if (erros.length > 0) {
