@@ -18,9 +18,13 @@ export const HARDWARE = {
   caseTopo: `${REPO_POLPAD}/raw/main/hardware/case/case_top.stl`,
   caseBase: `${REPO_POLPAD}/raw/main/hardware/case/case_bottom.stl`,
   gcode: `${REPO_POLPAD}/tree/main/hardware/case/gcode-ender3-v3-se`,
+  // Pasta, e não um arquivo: os nomes dos Gerbers levam a data, e o README de lá
+  // diz o que conferir antes de fabricar.
+  placa: `${REPO_POLPAD}/tree/main/hardware/PCB_polpad`,
 } as const;
 
-export const AUTORES: { nome: string; github: string }[] = [
-  { nome: 'Gabriel R. Pires', github: 'gabriel-re-pires' },
-  { nome: 'Artur', github: 'Artur-Brasileiro' },
+/** Quem fez o Polpad. `curto` e `site` aparecem na coluna "Criadores" do rodapé. */
+export const AUTORES: { nome: string; curto: string; github: string; site: string }[] = [
+  { nome: 'Gabriel R. Pires', curto: 'Gabriel', github: 'gabriel-re-pires', site: 'https://github.com/gabriel-re-pires' },
+  { nome: 'Artur', curto: 'Artur', github: 'Artur-Brasileiro', site: 'https://arturbrasileiro.com.br/' },
 ];

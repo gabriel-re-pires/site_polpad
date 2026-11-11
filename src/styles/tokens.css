@@ -1,18 +1,48 @@
-/* Cores da marca do polvo (docs/marca/polvo-encoder no repositório polpad).
-   Roxo sobre o fundo só em título grande e ícone: o contraste (3,2:1) não basta para texto pequeno. */
+/* Identidade do site: blocos chapados, sem gradiente.
+
+   Duas famílias de cor, e só duas:
+   - a do roxo da marca (#7A2EF0, matiz 293° em OKLCH), que inclui o preto da marca
+     (#0E0B14, matiz 299°) e todos os cinzas, puxados para o mesmo matiz;
+   - o limão (#D8F343, matiz 118°), que é a cor complementar do roxo (175° de distância).
+
+   Roxo é cor de superfície: blocos grandes com texto branco por cima (6,0:1).
+   Limão é a cor de ação: botões e destaques, com texto escuro (15,6:1). Fica em pouca
+   área; lado a lado com o roxo em blocos do mesmo tamanho, os dois "vibram".
+   Roxo sobre o preto tem 3,2:1: serve para título grande e ícone, não para texto pequeno.
+   Guia da marca: docs/marca/polvo-encoder no repositório polpad. */
 :root {
   --cor-fundo: #0e0b14;
-  --cor-fundo-elevado: #17121f;
-  --cor-destaque: #7a2ef0;
-  --cor-destaque-forte: #8f4bf5;
+  --cor-fundo-elevado: #17131f;
+  --cor-superficie: #1f1a29;
+  --cor-roxo: #7a2ef0;
+  --cor-lima: #d8f343;
+  --cor-lima-forte: #e6ff5c;
+  --cor-tinta: #0e0b14;
+  --cor-papel: #edeaf3;
   --cor-texto: #ffffff;
-  --cor-texto-suave: #b9b3c6;
-  --cor-borda: #2a2433;
+  --cor-texto-corpo: #edeaf3;
+  --cor-texto-suave: #b4aec2;
+  --cor-texto-fraco: #8b8499;
+  --cor-borda: #2a2436;
+  --cor-borda-forte: #3b3449;
+
+  /* Nomes antigos, mantidos para os componentes que ainda os usam. */
+  --cor-destaque: var(--cor-roxo);
+  --cor-destaque-forte: var(--cor-roxo);
 
   --fonte-titulo: 'Unbounded', system-ui, sans-serif;
-  --fonte-texto: 'Inter', system-ui, sans-serif;
+  --fonte-texto: 'Instrument Sans', system-ui, sans-serif;
+  --fonte-pixel: 'Silkscreen', ui-monospace, monospace;
 
-  --largura-max: 1120px;
-  --raio: 12px;
+  --largura-max: 1240px;
+  --largura-texto: 62ch;
+  --raio: 14px;
+  --raio-grande: 28px;
+  --raio-painel: clamp(28px, 3.6vw, 44px);
+  --vao: 12px;
   --gutter: clamp(16px, 4vw, 32px);
+  --secao: clamp(4.5rem, 11vw, 9rem);
+  --altura-cabecalho: 60px;
+  /* O site inteiro aparece em 80% (global.css); só o palco do 3D volta a 100%. */
+  --zoom-site: 0.8;
 }

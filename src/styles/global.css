@@ -9,6 +9,19 @@
 html {
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--altura-cabecalho) + 2rem);
+}
+
+/* Links para seções da mesma página (os atalhos dos guias) deslizam até lá. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+::selection {
+  background: var(--cor-lima);
+  color: var(--cor-tinta);
 }
 
 body {
@@ -21,7 +34,14 @@ body {
   font-family: var(--fonte-texto);
   font-size: 1rem;
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 main {
@@ -44,11 +64,13 @@ h2,
 h3 {
   font-family: var(--fonte-titulo);
   line-height: 1.15;
+  letter-spacing: -0.025em;
   margin: 0 0 0.5em;
+  text-wrap: balance;
 }
 
 :focus-visible {
-  outline: 2px solid var(--cor-destaque-forte);
+  outline: 2px solid var(--cor-lima);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -66,8 +88,9 @@ h3 {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.5rem;
-  border-radius: 10px;
+  border-radius: 999px;
   font-weight: 600;
+  letter-spacing: -0.005em;
   text-decoration: none;
   border: 1px solid transparent;
   transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
@@ -77,23 +100,81 @@ h3 {
   transform: translateY(-1px);
 }
 
+/* Limão com texto escuro: a ação principal de cada tela. */
 .botao-primario {
-  background: var(--cor-destaque);
-  color: var(--cor-texto);
+  background: var(--cor-lima);
+  color: var(--cor-tinta);
 }
 
 .botao-primario:hover {
-  background: var(--cor-destaque-forte);
+  background: var(--cor-lima-forte);
 }
 
 .botao-secundario {
-  background: var(--cor-fundo-elevado);
+  background: transparent;
   color: var(--cor-texto);
-  border-color: var(--cor-borda);
+  border-color: rgb(255 255 255 / 0.25);
 }
 
 .botao-secundario:hover {
-  border-color: var(--cor-texto-suave);
+  border-color: var(--cor-texto);
+}
+
+/* Para fundos limão: botão escuro. */
+.botao-escuro {
+  background: var(--cor-tinta);
+  color: var(--cor-texto);
+}
+
+.botao-escuro:hover {
+  background: var(--cor-superficie);
+}
+
+.botao:active {
+  transform: translateY(0);
+}
+
+.botao-grande {
+  padding: 1rem 1.75rem;
+  font-size: 1.05rem;
+}
+
+/* Link de texto com sublinhado limão, que engrossa no hover. */
+.link-seta {
+  font-weight: 600;
+  color: var(--cor-texto);
+  text-decoration: underline;
+  text-decoration-color: var(--cor-lima);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  transition: text-decoration-thickness 0.15s, color 0.15s;
+}
+
+.link-seta:hover {
+  color: var(--cor-lima);
+  text-decoration-thickness: 3px;
+}
+
+/* O site inteiro em 80%, como o zoom do navegador em 80%, em qualquer tela. */
+html {
+  zoom: var(--zoom-site);
+}
+
+/* Título e texto de abertura de uma seção. */
+.secao-cabeca {
+  max-width: 40rem;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.secao-cabeca h2 {
+  font-size: clamp(1.9rem, 5vw, 3.25rem);
+  margin-bottom: 0.75rem;
+}
+
+.secao-cabeca p {
+  color: var(--cor-texto-suave);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  margin: 0;
 }
 
 /* "Pular para o conteúdo": só aparece ao receber foco pelo teclado. */
@@ -118,6 +199,23 @@ main:focus {
   outline: none;
 }
 
+/* Troca de página com fusão suave (navegadores com View Transitions entre documentos).
+   O cabeçalho tem nome próprio para ficar parado enquanto o conteúdo troca. */
+@view-transition {
+  navigation: auto;
+}
+
+/* Cartões que viram o topo da página seguinte (guias e projetos) andam com calma. */
+::view-transition-group(*) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+}
+
 .visualmente-oculto {
   position: absolute;
   width: 1px;
@@ -128,8 +226,14 @@ main:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition: none !important;
     animation: none !important;
+  }
+
+  @view-transition {
+    navigation: none;
   }
 }

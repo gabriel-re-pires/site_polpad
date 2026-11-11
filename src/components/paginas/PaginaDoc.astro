@@ -2,7 +2,8 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import DocsLayout from '../../layouts/Docs.astro';
 import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
-import { traducao, urlDoc } from '../../lib/docs';
+import { corDoGuia, docsDoIdioma, traducao, urlDoc } from '../../lib/docs';
+import { REPO_SITE } from '../../lib/site';
 
 interface Props {
   idioma: Idioma;
@@ -10,10 +11,16 @@ interface Props {
 }
 
 const { idioma, doc } = Astro.props;
-const { Content } = await render(doc);
+const { Content, headings } = await render(doc);
+const secoes = headings.filter((h) => h.depth === 2);
 const outro = outroIdioma(idioma);
-const traduzido = traducao(await getCollection('docs'), doc, outro);
+const todos = await getCollection('docs');
+const traduzido = traducao(todos, doc, outro);
+// A posição do guia na ordem do menu lateral dá o número e a cor do topo.
+const lista = docsDoIdioma(todos, idioma);
+const posicao = lista.findIndex((d) => d.id === doc.id);
 const alternativa = traduzido ? urlDoc(outro, traduzido) : rota(outro, 'docs');
+const numero = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <DocsLayout
@@ -24,22 +31,124 @@ const alternativa = traduzido ? urlDoc(outro, traduzido) : rota(outro, 'docs');
   traduzida={Boolean(traduzido)}
   atual={doc}
 >
-  <h1>{doc.data.titulo}</h1>
+  <!-- Topo na mesma cor do cartão deste guia no índice. -->
+  <header
+    class:list={['cabeca', corDoGuia(Math.max(posicao, 0))]}
+    style={`view-transition-name: guia-${doc.data.chave}`}
+  >
+    <p class="meta">
+      <span class="visor" aria-hidden="true">{numero(Math.max(posicao, 0))}</span>
+      <span>{`${t(idioma, 'docs_guia')} ${posicao + 1} ${t(idioma, 'docs_de')} ${lista.length}`}</span>
+    </p>
+    <h1>{doc.data.titulo}</h1>
+    {
+      secoes.length > 1 && (
+        <nav class="secoes" aria-label={t(idioma, 'docs_neste_guia')}>
+          <ul>
+            {secoes.map((s) => (
+              <li>
+                <a href={`#${s.slug}`}>{s.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+  </header>
   <Content />
-  {
-    doc.data.fonte && (
-      <p class="fonte">
-        <a href={doc.data.fonte}>{t(idioma, 'docs_ver_repositorio')} ↗</a>
-      </p>
-    )
-  }
+  <!-- Abre este arquivo no editor do GitHub: quem achar um erro já propõe a correção. -->
+  <p class="fonte">
+    <a class="link-seta discreto" href={`${REPO_SITE}/edit/main/src/content/docs/${doc.id}.md`}>
+      {t(idioma, 'docs_editar')}
+    </a>
+  </p>
 </DocsLayout>
 
 <style>
+  /* Topo do guia: um bloco chapado com o número, a posição e o título. */
+  .cabeca {
+    margin-bottom: 2rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border-radius: var(--raio-grande);
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.85rem;
+    margin: 0 0 1.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .cabeca h1 {
+    margin: 0;
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    letter-spacing: -0.04em;
+    color: inherit;
+  }
+  /* Atalhos para as seções do guia, como no índice. */
+  .secoes ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.4rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .secoes a {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.14);
+    color: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s;
+  }
+  .secoes a:hover {
+    background: rgb(255 255 255 / 0.26);
+  }
+  .claro .secoes a,
+  .lima .secoes a {
+    background: rgb(14 11 20 / 0.09);
+  }
+  .claro .secoes a:hover,
+  .lima .secoes a:hover {
+    background: rgb(14 11 20 / 0.17);
+  }
+  .roxo {
+    background: var(--cor-roxo);
+    color: var(--cor-texto);
+  }
+  .claro {
+    background: var(--cor-papel);
+    color: var(--cor-tinta);
+  }
+  .lima {
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+  }
+  .visor {
+    flex-shrink: 0;
+    padding: 0.35rem 0.5rem 0.27rem;
+    border-radius: 6px;
+    background: #000;
+    color: #fff;
+    font-family: var(--fonte-pixel);
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
   .fonte {
     margin-top: 3rem;
-    padding-top: 1rem;
+    padding-top: 1.25rem;
     border-top: 1px solid var(--cor-borda);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+  }
+  .discreto {
+    color: var(--cor-texto-suave);
+    text-decoration-color: var(--cor-borda-forte);
   }
 </style>

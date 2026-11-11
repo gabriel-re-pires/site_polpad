@@ -1,0 +1,267 @@
+---
+// O Polpad One em 3D, parado, nas proporções reais da tampa (src/lib/polpad.ts). É só
+// uma ilustração: o display mostra "POLPAD" e as teclas não fazem nada além de afundar,
+// em limão, quando alguém clica. O cartão embaixo do case tem uma frase fixa.
+// O 3D (src/scripts/macropad3d.ts) entra assim que carrega. O desenho em CSS fica de
+// reserva: aparece sem JavaScript ou se o navegador não conseguir desenhar em 3D.
+import { t, type Idioma } from '../lib/i18n';
+import { CASE, KEYCAP, TECLAS, TELA } from '../lib/polpad';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+const pct = (mm: number) => `${((mm / CASE.lado) * 100).toFixed(3)}%`;
+---
+
+<div class="polpad" data-polpad data-estado="carregando">
+  <div class="figura" role="img" aria-label={t(idioma, 'demo_rotulo')}>
+    <canvas class="cena" aria-hidden="true"></canvas>
+    <div class="case" aria-hidden="true">
+      <!-- A lateral direita do case, que aparece porque o desenho está girado um pouco. -->
+      <span class="lado" aria-hidden="true"></span>
+      <div
+        class="tela"
+        style={`left: ${pct(CASE.lado / 2 + TELA.x)}; top: ${pct(CASE.lado / 2 - TELA.y)}; width: ${pct(TELA.largura)}; height: ${pct(TELA.altura)}`}
+      >
+        Polpad
+      </div>
+      {
+        TECLAS.map(([x, y]) => (
+          <span
+            class="tecla"
+            style={`left: ${pct(CASE.lado / 2 + x)}; top: ${pct(CASE.lado / 2 - y)}; width: ${pct(KEYCAP)}`}
+            data-tecla
+          />
+        ))
+      }
+    </div>
+  </div>
+  <p class="leitura" aria-hidden="true">{t(idioma, 'demo_dica')}</p>
+  <noscript><style is:inline>[data-polpad] .case { visibility: visible !important; }</style></noscript>
+</div>
+
+<script>
+  // O 3D carrega depois da página, sem atrasar o resto. Se falhar, volta o desenho.
+  const polpad = document.querySelector<HTMLElement>('[data-polpad]');
+  const cena = polpad?.querySelector<HTMLCanvasElement>('.cena');
+  if (polpad && cena) {
+    import('../scripts/macropad3d')
+      .then(({ iniciarMacropad }) => iniciarMacropad(cena))
+      .then(() => (polpad.dataset.estado = 'pronto'))
+      .catch(() => (polpad.dataset.estado = 'falhou'));
+  }
+
+  // No desenho de reserva: clicar numa tecla: ela afunda e acende em limão enquanto está apertada. Um toque
+  // rápido ainda mostra a animação inteira, que dura pelo menos MINIMO ms.
+  const MINIMO = 180;
+
+  for (const tecla of document.querySelectorAll<HTMLElement>('[data-polpad] [data-tecla]')) {
+    let desde = 0;
+    let soltar = 0;
+    tecla.addEventListener('pointerdown', () => {
+      window.clearTimeout(soltar);
+      desde = performance.now();
+      tecla.classList.add('apertada');
+    });
+    const fim = () => {
+      if (!tecla.classList.contains('apertada')) return;
+      const falta = Math.max(0, MINIMO - (performance.now() - desde));
+      soltar = window.setTimeout(() => tecla.classList.remove('apertada'), falta);
+    };
+    tecla.addEventListener('pointerup', fim);
+    tecla.addEventListener('pointerleave', fim);
+    tecla.addEventListener('pointercancel', fim);
+  }
+</script>
+
+<style>
+  /* Desenho de reserva, com aspecto 3D só com CSS: o case fica deitado em perspectiva (visto de frente e um pouco
+     de cima), com uma face frontal de verdade dando espessura, e as teclas sobem da placa
+     mostrando a lateral. O ponto de apoio é a borda da frente, que não sai do lugar. */
+  .polpad {
+    position: relative;
+    width: min(100%, 460px);
+    container-type: inline-size;
+    perspective: 1100px;
+    perspective-origin: 50% 25%;
+  }
+  /* No celular, um pouco menor: o giro empurra a quina direita (com a lateral) para fora. */
+  @media (max-width: 640px) {
+    .polpad {
+      width: min(86%, 460px);
+    }
+  }
+  /* A ilustração 3D cobre o quadrado do case e um pouco mais em volta, para a sombra e a
+     perspectiva não serem cortadas. Aparece devagar quando o primeiro quadro fica pronto. */
+  .figura {
+    position: relative;
+  }
+  .cena {
+    position: absolute;
+    top: -22%;
+    left: -22%;
+    width: 144%;
+    height: 144%;
+    opacity: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.6s ease-out;
+  }
+  [data-estado='pronto'] .cena {
+    opacity: 1;
+  }
+  [data-estado='falhou'] .cena {
+    display: none;
+  }
+
+  /* O desenho de reserva só aparece se o 3D falhar (ou sem JavaScript). Escondido, ainda
+     guarda o lugar: o bloco fica com a altura do case. */
+  .case {
+    visibility: hidden;
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 3.4%;
+    background: #16121e;
+    transform: rotateX(18deg) rotateZ(10deg);
+    transform-origin: 50% 100%;
+    transform-style: preserve-3d;
+    box-shadow:
+      inset 0 0.4cqw 0 rgb(255 255 255 / 0.1),
+      inset 0 -0.35cqw 0 rgb(255 255 255 / 0.09),
+      inset 0 0 0 0.25cqw rgb(255 255 255 / 0.04);
+  }
+  [data-estado='falhou'] .case {
+    visibility: visible;
+  }
+  /* A frente do case: uma faixa dobrada para baixo a partir da borda, perpendicular à placa. */
+  .case::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 9cqw;
+    border-radius: 0 0 3cqw 3cqw;
+    background: #060409;
+    box-shadow: inset 0 0.5cqw 0 rgb(255 255 255 / 0.08);
+    transform: rotateX(-90deg);
+    transform-origin: 50% 0;
+  }
+  /* A lateral direita: a mesma faixa da frente, dobrada para baixo a partir da borda
+     direita. Um pouco mais clara que a frente, como se a luz viesse da direita. */
+  .lado {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    width: 9cqw;
+    border-radius: 0 3cqw 3cqw 0;
+    background: #0d0a14;
+    box-shadow: inset 0.5cqw 0 0 rgb(255 255 255 / 0.07);
+    transform: rotateY(90deg);
+    transform-origin: 0 50%;
+  }
+  /* A sombra do case na superfície, um pouco à frente dele. */
+  .case::after {
+    content: '';
+    position: absolute;
+    inset: 6% 2% -6%;
+    z-index: -1;
+    border-radius: 6%;
+    background: rgb(14 11 20 / 0.55);
+    filter: blur(4cqw);
+    transform: translateZ(-9cqw);
+  }
+  /* O display fica afundado na moldura. */
+  .tela {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    border-radius: 6%/9%;
+    background: #000;
+    box-shadow:
+      0 0 0 0.5cqw #1f1a29,
+      inset 0 0.8cqw 1cqw rgb(255 255 255 / 0.06),
+      inset 0 0 0 0.2cqw rgb(0 0 0 / 0.8);
+    color: #fff;
+    font-family: var(--fonte-pixel);
+    font-size: 2.55cqw;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  /* Cada tecla sobe da placa: o topo com um brilho de cima para baixo e, embaixo, a lateral
+     (uma faixa mais escura) e a sombra que ela faz na placa. */
+  .tecla {
+    --lateral: #17121f;
+    position: absolute;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) translateZ(1.6cqw);
+    border-radius: 17%;
+    background-color: #2a2436;
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 55%);
+    box-shadow:
+      inset 0 0.3cqw 0 rgb(255 255 255 / 0.12),
+      0 1.1cqw 0 var(--lateral),
+      0 1.8cqw 1.4cqw rgb(0 0 0 / 0.45);
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Ao soltar, volta devagar para a cor da tecla. */
+    transition:
+      translate 0.12s ease-out,
+      box-shadow 0.12s ease-out,
+      background-color 0.35s ease-out;
+  }
+  .tecla:hover {
+    background-color: #3b3449;
+  }
+  /* Apertada: afunda até a lateral sumir e fica limão na hora. */
+  .tecla.apertada {
+    --lateral: #8fa31f;
+    translate: 0 0.9cqw;
+    background-color: var(--cor-lima);
+    box-shadow:
+      inset 0 0.3cqw 0 rgb(255 255 255 / 0.5),
+      0 0.2cqw 0 var(--lateral),
+      0 0.5cqw 0.6cqw rgb(0 0 0 / 0.35);
+    transition:
+      translate 0.06s ease-out,
+      box-shadow 0.06s ease-out,
+      background-color 0.06s ease-out;
+  }
+
+  /* Um cartão claro, com uma frase fixa, que se sobrepõe à borda de baixo do case.
+     Fica fora do fluxo: o bloco do desenho tem a altura exata do case. */
+  .leitura {
+    position: absolute;
+    top: 100%;
+    left: 4%;
+    z-index: 1;
+    translate: 0 -1.7rem;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 92%;
+    min-height: 3.4rem;
+    margin: 0;
+    padding: 0.7rem 1.1rem;
+    border: 2.5px solid var(--cor-tinta);
+    border-radius: 18px;
+    background: var(--cor-papel);
+    color: var(--cor-tinta);
+    /* Sombra chapada em limão: embaixo e subindo pela lateral direita. */
+    box-shadow: 0.4rem 0.4rem 0 var(--cor-lima);
+    rotate: -2deg;
+    font-family: var(--fonte-titulo);
+    font-size: clamp(0.95rem, 2.4cqw, 1.1rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+</style>

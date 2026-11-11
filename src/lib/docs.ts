@@ -22,3 +22,7 @@ export function traducao<T extends DocBasico>(docs: T[], doc: DocBasico, idioma:
 export function urlDoc(idioma: Idioma, doc: DocBasico): string {
   return rota(idioma, 'docs', slugDoDoc(doc.id));
 }
+
+/** Cor de cada guia, na ordem: a mesma no índice e no topo da página do guia (o Firmware também é claro, a pedido). */
+export const CORES_DOS_GUIAS = ['roxo', 'claro', 'claro', 'lima'] as const;
+export const corDoGuia = (posicao: number) => CORES_DOS_GUIAS[posicao % CORES_DOS_GUIAS.length];

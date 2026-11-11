@@ -19,7 +19,7 @@ da revisão. Dá para fazer tudo pelo navegador, sem instalar o Git.
 | `build` | "montei o meu assim": fotos, peças, mudanças | CC-BY-4.0, CC-BY-SA-4.0, CERN-OHL-S-2.0 |
 | `firmware` | firmware modificado | GPL-3.0-or-later |
 
-O firmware do Polpad é GPL, então um firmware modificado também precisa ser,
+O firmware do Polpad One é GPL, então um firmware modificado também precisa ser,
 e precisa trazer o código-fonte ou um link para ele.
 
 ## Passo a passo

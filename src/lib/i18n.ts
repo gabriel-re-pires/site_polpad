@@ -8,7 +8,7 @@ export type ChaveRota = 'inicio' | 'baixar' | 'comunidade' | 'docs';
 
 export const ROTAS: Record<ChaveRota, Record<Idioma, string>> = {
   inicio: { 'pt-br': '', en: '' },
-  baixar: { 'pt-br': 'baixar', en: 'download' },
+  baixar: { 'pt-br': 'download', en: 'download' },
   comunidade: { 'pt-br': 'comunidade', en: 'community' },
   docs: { 'pt-br': 'docs', en: 'docs' },
 };

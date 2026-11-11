@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { docsDoIdioma, slugDoDoc, traducao, urlDoc } from '../src/lib/docs';
+import { corDoGuia, docsDoIdioma, slugDoDoc, traducao, urlDoc } from '../src/lib/docs';
 
 const doc = (id: string, chave: string, ordem: number) => ({ id, data: { chave, ordem } });
 const montagemPt = doc('pt-br/montagem', 'montagem', 1);
@@ -39,5 +39,12 @@ describe('urlDoc', () => {
   it('monta a rota da doc no idioma', () => {
     expect(urlDoc('en', assemblyEn)).toBe('/en/docs/assembly/');
     expect(urlDoc('pt-br', montagemPt)).toBe('/docs/montagem/');
+  });
+});
+
+describe('corDoGuia', () => {
+  it('dá a cada guia uma cor, na ordem do índice (o Firmware é claro como o Instalar), e recomeça depois da quarta', () => {
+    expect([0, 1, 2, 3].map(corDoGuia)).toEqual(['roxo', 'claro', 'claro', 'lima']);
+    expect(corDoGuia(4)).toBe('roxo');
   });
 });

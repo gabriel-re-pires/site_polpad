@@ -2,30 +2,46 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Hero from '../Hero.astro';
-import Cartoes from '../Cartoes.astro';
+import Modelo3D from '../Modelo3D.astro';
+import Fichas from '../Fichas.astro';
+import Passos from '../Passos.astro';
+import Recursos from '../Recursos.astro';
 import CartaoProjeto from '../CartaoProjeto.astro';
 import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
 import { ordenarPorData } from '../../lib/comunidade';
+import { urlEnviarProjeto, urlMontagem } from '../../lib/links';
 
 interface Props {
   idioma: Idioma;
 }
 
 const { idioma } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const recentes = ordenarPorData(await getCollection('comunidade')).slice(0, 3);
 ---
 
 <Base idioma={idioma} titulo="Polpad" alternativa={rota(outroIdioma(idioma), 'inicio')}>
   <Hero idioma={idioma} />
-  <Cartoes idioma={idioma} />
+  <Modelo3D idioma={idioma} />
+  <Fichas idioma={idioma} />
+  <Passos idioma={idioma} />
+  <Recursos idioma={idioma} />
   {
     recentes.length > 0 && (
-      <section class="conteiner previa">
+      <section class="conteiner previa" aria-labelledby="previa-titulo">
         <div class="topo">
-          <h2>{t(idioma, 'previa_titulo')}</h2>
-          <a href={rota(idioma, 'comunidade')}>
-            {t(idioma, 'previa_ver_todos')} <span aria-hidden="true">→</span>
-          </a>
+          <div class="secao-cabeca">
+            <h2 id="previa-titulo">{t(idioma, 'previa_titulo')}</h2>
+            <p>{t(idioma, 'previa_intro')}</p>
+          </div>
+          <div class="links">
+            <a class="link-seta" href={rota(idioma, 'comunidade')}>
+              {t(idioma, 'previa_ver_todos')}
+            </a>
+            <a class="link-seta discreto" href={urlEnviarProjeto(idioma)}>
+              {t(idioma, 'previa_enviar')}
+            </a>
+          </div>
         </div>
         <ul class="grade">
           {recentes.map((projeto) => (
@@ -35,31 +51,55 @@ const recentes = ordenarPorData(await getCollection('comunidade')).slice(0, 3);
       </section>
     )
   }
+  <section class="conteiner" aria-labelledby="cta-titulo">
+    <div class="cta">
+      <!-- Selo roxo no canto do bloco, recortado no fundo da página. -->
+      <div class="selo" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="100" height="100">
+          <defs>
+            <path id="selo-circulo" d="M50 50m-37 0a37 37 0 1 1 74 0a37 37 0 1 1-74 0" />
+          </defs>
+          <text>
+            <textPath href="#selo-circulo" textLength="230" lengthAdjust="spacing">
+              {t(idioma, 'cta_selo')}
+            </textPath>
+          </text>
+        </svg>
+        <img src={`${base}polvo.svg`} alt="" width="30" height="30" />
+      </div>
+      <h2 id="cta-titulo">{t(idioma, 'cta_titulo')}</h2>
+      <p>{t(idioma, 'cta_texto')}</p>
+      <div class="botoes">
+        <a class="botao botao-escuro botao-grande" href={urlMontagem(idioma)}>{t(idioma, 'cta_montar')}</a>
+        <a class="botao botao-contorno botao-grande" href={rota(idioma, 'baixar')}>{t(idioma, 'cta_baixar')}</a>
+      </div>
+    </div>
+  </section>
 </Base>
 
 <style>
   .previa {
-    padding-block: 2rem;
+    padding-block: 0 var(--secao);
   }
   .topo {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 0.5rem 1rem;
-    margin-bottom: 1.5rem;
+    gap: 1rem 2rem;
+    margin-bottom: clamp(2rem, 5vw, 3rem);
   }
-  h2 {
-    font-size: clamp(1.4rem, 3.5vw, 2rem);
-    margin: 0;
+  .topo .secao-cabeca {
+    margin-bottom: 0;
   }
-  .topo a {
-    font-weight: 600;
-    text-decoration: none;
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+  }
+  .discreto {
     color: var(--cor-texto-suave);
-  }
-  .topo a:hover {
-    color: var(--cor-texto);
+    text-decoration-color: var(--cor-borda-forte);
   }
   .grade {
     display: grid;
@@ -67,5 +107,93 @@ const recentes = ordenarPorData(await getCollection('comunidade')).slice(0, 3);
     gap: 1.25rem;
     padding: 0;
     margin: 0;
+  }
+  /* Bloco limão chapado: o fechamento da página. */
+  .cta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 4rem;
+    padding: clamp(2rem, 6vw, 4.5rem);
+    border-radius: var(--raio-painel);
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+  }
+  .selo {
+    position: absolute;
+    top: 0;
+    right: clamp(1.5rem, 7vw, 5rem);
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    width: clamp(6rem, 10vw, 8.25rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--cor-roxo);
+    color: var(--cor-texto);
+    box-shadow: 0 0 0 calc(var(--vao) - 2px) var(--cor-fundo);
+  }
+  .selo svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    animation: girar 22s linear infinite;
+  }
+  .selo text {
+    fill: currentColor;
+    font-family: var(--fonte-texto);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  .selo img {
+    width: 34%;
+    height: auto;
+    filter: brightness(0) invert(1);
+  }
+  @keyframes girar {
+    to {
+      rotate: 1turn;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .selo svg {
+      animation: none;
+    }
+  }
+  .cta h2 {
+    position: relative;
+    font-size: clamp(2rem, 5.5vw, 3.75rem);
+    max-width: 14ch;
+    margin-bottom: 0.75rem;
+  }
+  .cta p {
+    position: relative;
+    color: rgb(14 11 20 / 0.78);
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    max-width: 32rem;
+    margin: 0 0 2rem;
+    text-wrap: balance;
+  }
+  .botoes {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .botao-contorno {
+    color: var(--cor-tinta);
+    border-color: rgb(14 11 20 / 0.4);
+  }
+  .botao-contorno:hover {
+    border-color: var(--cor-tinta);
+  }
+  @media (max-width: 480px) {
+    .botoes {
+      flex-direction: column;
+      width: 100%;
+    }
   }
 </style>

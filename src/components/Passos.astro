@@ -1,0 +1,161 @@
+---
+// Montar, instalar e configurar: é uma sequência de verdade, por isso os números.
+import { rota, t, type Idioma, type ChaveTexto } from '../lib/i18n';
+import { urlDocPorChave, urlMontagem } from '../lib/links';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+
+const passos: { chave: 'montar' | 'instalar' | 'configurar'; href: string }[] = [
+  { chave: 'montar', href: urlMontagem(idioma) },
+  { chave: 'instalar', href: rota(idioma, 'baixar') },
+  { chave: 'configurar', href: urlDocPorChave(idioma, 'firmware') },
+];
+const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as ChaveTexto);
+---
+
+<section class="conteiner passos" aria-labelledby="passos-titulo">
+  <div class="painel">
+    <div class="secao-cabeca">
+      <h2 id="passos-titulo">{t(idioma, 'passos_titulo')}</h2>
+      <p>{t(idioma, 'passos_intro')}</p>
+    </div>
+    <ol class="lista">
+      {
+        passos.map(({ chave, href }, i) => (
+          <li class="passo">
+            <span class="numero" aria-hidden="true">
+              {i + 1}
+            </span>
+            <h3>{texto(chave)}</h3>
+            <p>{texto(chave, '_texto')}</p>
+            <a class="chip" href={href}>
+              {texto(chave, '_link')}
+            </a>
+            {i < passos.length - 1 && (
+              <svg class="seta" viewBox="0 0 64 40" width="64" height="40" aria-hidden="true">
+                <path d="M3 28c8-20 24-22 25-10s-14 12-10 0 22-16 40-4M50 6l8 8-11 3" />
+              </svg>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .passos {
+    padding-block: var(--secao) 0;
+  }
+  /* Um painel roxo grande com os passos em cartões claros por dentro. */
+  .painel {
+    padding: clamp(1.75rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem) clamp(3rem, 6vw, 4.5rem);
+    border-radius: var(--raio-painel);
+    background: var(--cor-roxo);
+  }
+  .secao-cabeca p {
+    color: rgb(255 255 255 / 0.85);
+  }
+  .lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 3.75rem;
+  }
+  @media (min-width: 840px) {
+    .lista {
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(2rem, 4vw, 3.5rem);
+    }
+  }
+  .passo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 21rem;
+    padding: clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem) 2.75rem;
+    border-radius: var(--raio-grande);
+    background: var(--cor-papel);
+    color: var(--cor-tinta);
+  }
+  /* Numeral gigante em contorno: o grafismo de letra vazada da marca. */
+  .numero {
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    font-size: clamp(6rem, 12vw, 8.5rem);
+    line-height: 0.8;
+    letter-spacing: -0.05em;
+    color: var(--cor-papel);
+    -webkit-text-stroke: 4px var(--cor-roxo);
+    paint-order: stroke fill;
+    padding-bottom: 1.75rem;
+  }
+  h3 {
+    font-size: clamp(1.4rem, 2.6vw, 1.7rem);
+    margin-bottom: 0.6rem;
+  }
+  p {
+    margin: 0;
+    color: rgb(14 11 20 / 0.75);
+  }
+  /* O link é uma pílula que passa da borda de baixo do cartão para o roxo. */
+  .chip {
+    position: absolute;
+    left: clamp(1.5rem, 3vw, 2rem);
+    bottom: 0;
+    translate: 0 50%;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.9rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 999px;
+    background: var(--cor-tinta);
+    color: var(--cor-texto);
+    box-shadow: 0 0 0 5px var(--cor-roxo);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  .chip:hover {
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--cor-lima);
+    outline-offset: 7px;
+  }
+  /* Setas desenhadas à mão ligam um passo ao seguinte, por cima do vão. */
+  .seta {
+    position: absolute;
+    right: 2.5rem;
+    bottom: -3.3rem;
+    width: 3.6rem;
+    height: auto;
+    rotate: 90deg;
+    fill: none;
+    stroke: var(--cor-lima);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  @media (min-width: 840px) {
+    .seta {
+      left: 100%;
+      right: auto;
+      bottom: auto;
+      top: 38%;
+      width: clamp(4.25rem, 7vw, 6rem);
+      translate: -50% -50%;
+      rotate: -6deg;
+    }
+  }
+</style>

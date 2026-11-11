@@ -1,7 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Base from './Base.astro';
-import { t, type Idioma } from '../lib/i18n';
+import { rota, t, type Idioma } from '../lib/i18n';
 import { docsDoIdioma, urlDoc } from '../lib/docs';
 
 interface Props {
@@ -21,17 +21,21 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
 <Base idioma={idioma} titulo={titulo} descricao={descricao} alternativa={alternativa} traduzida={traduzida}>
   <div class="conteiner docs">
     <nav aria-label={t(idioma, 'docs_navegacao')}>
-      <ul>
+      <a class="todos" href={rota(idioma, 'docs')}>{t(idioma, 'docs_titulo')}</a>
+      <ol>
         {
-          lista.map((doc) => (
+          lista.map((doc, i) => (
             <li>
               <a href={urlDoc(idioma, doc)} aria-current={doc.id === atual?.id ? 'page' : undefined}>
+                <span class="visor" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 {doc.data.titulo}
               </a>
             </li>
           ))
         }
-      </ul>
+      </ol>
     </nav>
     <article>
       <slot />
@@ -40,15 +44,19 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
 </Base>
 
 <style>
+  /* Os guias usam a largura toda da tela: o menu fica perto da borda esquerda, alinhado
+     com o nome "Polpad" da barra no topo, e o texto ganha mais espaço. */
   .docs {
     display: grid;
     gap: 2rem;
-    padding-block: 2.5rem 3rem;
+    max-width: none;
+    padding-inline: calc(var(--gutter) + clamp(0.5rem, 2vw, 1.5rem));
+    padding-block: clamp(2rem, 5vw, 3.5rem) 0;
   }
   @media (min-width: 768px) {
     .docs {
       grid-template-columns: 220px minmax(0, 1fr);
-      gap: 3rem;
+      gap: clamp(3rem, 6vw, 6rem);
     }
     nav {
       position: sticky;
@@ -56,51 +64,85 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
       align-self: start;
     }
   }
-  nav ul {
+  /* Menu dos guias: o número de cada um num "display", como no índice. */
+  .todos {
+    display: inline-block;
+    margin: 0 0 0.85rem 0.15rem;
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.03em;
+    color: var(--cor-texto);
+    text-decoration: none;
+  }
+  .todos:hover {
+    color: var(--cor-lima);
+  }
+  nav ol {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    border-left: 1px solid var(--cor-borda);
+    gap: 0.3rem;
   }
-  @media (max-width: 767px) {
-    nav ul {
-      flex-direction: row;
-      flex-wrap: wrap;
-      border-left: 0;
-      gap: 0.5rem;
-    }
-    nav a {
-      border: 1px solid var(--cor-borda);
-      border-radius: 999px;
-      margin-left: 0 !important;
-    }
-  }
-  nav a {
-    display: block;
-    padding: 0.35rem 0.9rem;
-    margin-left: -1px;
-    border-left: 2px solid transparent;
+  nav li a {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.4rem 0.75rem 0.4rem 0.45rem;
+    border-radius: 999px;
     color: var(--cor-texto-suave);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
   }
-  nav a:hover {
+  nav li a:hover {
     color: var(--cor-texto);
+    background: var(--cor-fundo-elevado);
   }
-  nav a[aria-current='page'] {
-    color: var(--cor-texto);
-    border-left-color: var(--cor-destaque);
+  nav li a[aria-current='page'] {
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+  }
+  .visor {
+    flex-shrink: 0;
+    padding: 0.3rem 0.4rem 0.22rem;
+    border-radius: 6px;
+    background: #000;
+    box-shadow: 0 0 0 1px var(--cor-borda-forte);
+    color: #fff;
+    font-family: var(--fonte-pixel);
+    font-size: 0.72rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+  @media (max-width: 767px) {
+    nav ol {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    nav li a {
+      box-shadow: inset 0 0 0 1px var(--cor-borda);
+    }
   }
   article {
     min-width: 0;
-    max-width: 75ch;
+    max-width: 64rem;
   }
   article :global(h1) {
-    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-size: clamp(1.9rem, 5vw, 2.8rem);
+    letter-spacing: -0.02em;
+  }
+  article {
+    color: var(--cor-texto-corpo);
+  }
+  article :global(strong) {
+    color: var(--cor-texto);
   }
   article :global(h2) {
     font-size: 1.35rem;
@@ -111,20 +153,31 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
     font-size: 1.1rem;
     margin-top: 1.6rem;
   }
+  /* Tabelas em cartão: cantos arredondados, linhas finas e o cabeçalho em destaque. */
   article :global(table) {
-    border-collapse: collapse;
     display: block;
+    width: max-content;
+    max-width: 100%;
     overflow-x: auto;
-    margin-block: 1rem;
+    margin-block: 1.25rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--raio);
+    box-shadow: inset 0 0 0 1px var(--cor-borda);
   }
   article :global(th),
   article :global(td) {
-    border: 1px solid var(--cor-borda);
-    padding: 0.4rem 0.7rem;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--cor-borda);
     text-align: left;
+  }
+  article :global(tr:last-child td) {
+    border-bottom: 0;
   }
   article :global(th) {
     background: var(--cor-fundo-elevado);
+    color: var(--cor-texto);
+    font-size: 0.9rem;
   }
   article :global(code) {
     background: var(--cor-fundo-elevado);
@@ -133,12 +186,15 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
     padding: 0.05rem 0.35rem;
     font-size: 0.9em;
   }
+  /* Código em cartão, com os mesmos cantos dos cartões dos guias. */
   article :global(pre) {
     background: var(--cor-fundo-elevado) !important;
     border: 1px solid var(--cor-borda);
-    border-radius: var(--raio);
-    padding: 1rem;
+    border-radius: 18px;
+    padding: 1.1rem 1.25rem;
     overflow-x: auto;
+    font-size: 0.92rem;
+    line-height: 1.6;
   }
   article :global(pre code) {
     border: 0;
@@ -147,10 +203,55 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
   }
   article :global(a) {
     color: var(--cor-texto);
-    text-decoration-color: var(--cor-destaque);
+    text-decoration-color: var(--cor-lima);
     text-underline-offset: 3px;
   }
   article :global(li) {
     margin-block: 0.25rem;
+  }
+  /* Passo a passo: cada número num "display" de pixel, como o OLED do Polpad One. */
+  article > :global(ol) {
+    counter-reset: passo;
+    list-style: none;
+    padding-left: 0;
+  }
+  article > :global(ol) > :global(li) {
+    position: relative;
+    counter-increment: passo;
+    margin-block: 0.7rem;
+    padding-left: 2.9rem;
+  }
+  article > :global(ol) > :global(li)::before {
+    content: counter(passo, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.05rem;
+    padding: 0.3rem 0.4rem 0.22rem;
+    border-radius: 6px;
+    background: #000;
+    box-shadow: 0 0 0 1px var(--cor-borda-forte);
+    color: #fff;
+    font-family: var(--fonte-pixel);
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+  /* Listas comuns: um ponto limão no lugar da bolinha padrão. */
+  article > :global(ul) {
+    list-style: none;
+    padding-left: 0;
+  }
+  article > :global(ul) > :global(li) {
+    position: relative;
+    padding-left: 1.3rem;
+  }
+  article > :global(ul) > :global(li)::before {
+    content: '';
+    position: absolute;
+    left: 0.15rem;
+    top: 0.6em;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--cor-lima);
   }
 </style>

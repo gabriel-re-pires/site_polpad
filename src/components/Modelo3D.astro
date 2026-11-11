@@ -1,0 +1,462 @@
+---
+// O lugar do modelo 3D: um palco que fica fixo na tela enquanto a página rola, e
+// a rolagem desmonta o macropad camada por camada. O three.js e o modelo só são
+// baixados quando a seção chega perto da tela.
+import { rota, t, type Idioma, type ChaveTexto } from '../lib/i18n';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const camadas = ['keycaps', 'switches', 'tampa', 'placa', 'base'] as const;
+const cores = ['roxo', 'preto', 'branco', 'limao'] as const;
+const texto = (chave: string) => t(idioma, chave as ChaveTexto);
+---
+
+<section class="modelo" aria-labelledby="modelo-titulo">
+  <div class="conteiner">
+    <div class="secao-cabeca">
+      <h2 id="modelo-titulo">{t(idioma, 'modelo_titulo')}</h2>
+      <p>{t(idioma, 'modelo_intro')}</p>
+    </div>
+  </div>
+
+  <div class="trilho" data-modelo-trilho>
+    <div class="palco" data-modelo={`${base}modelos/polpad.glb`} data-estado="espera">
+      <canvas tabindex="0" role="img" aria-label={t(idioma, 'modelo_rotulo')}></canvas>
+
+      <ul class="legendas" aria-hidden="true">
+        {
+          camadas.map((camada) => (
+            <li data-camada={camada}>
+              <strong>{texto(`camada_${camada}`)}</strong>
+              <span>{texto(`camada_${camada}_texto`)}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="estado carregando">{t(idioma, 'modelo_carregando')}</p>
+      <p class="estado erro">
+        {t(idioma, 'modelo_erro')}
+        <a href={rota(idioma, 'baixar')}>{t(idioma, 'modelo_baixar')}</a>
+      </p>
+
+      <div class="controles">
+        <fieldset class="cores">
+          <legend>{t(idioma, 'modelo_cor')}</legend>
+          {
+            cores.map((cor, i) => (
+              <label class={cor} title={texto(`modelo_cor_${cor}`)}>
+                <input type="radio" name="cor-do-case" value={cor} checked={i === 0} />
+                <span class="visualmente-oculto">{texto(`modelo_cor_${cor}`)}</span>
+              </label>
+            ))
+          }
+        </fieldset>
+        <button type="button" class="botao botao-escuro alternar" data-modelo-alternar aria-pressed="false">
+          <span class="abrir">{t(idioma, 'modelo_abrir')}</span>
+          <span class="fechar">{t(idioma, 'modelo_fechar')}</span>
+        </button>
+        <p class="dica">{t(idioma, 'modelo_dica')}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="conteiner">
+    <!-- A mesma lista das legendas, em texto, para quem não vê o modelo. -->
+    <ul class="visualmente-oculto">
+      {camadas.map((camada) => <li>{`${texto(`camada_${camada}`)}: ${texto(`camada_${camada}_texto`)}`}</li>)}
+    </ul>
+  </div>
+</section>
+
+<script>
+  import type { Modelo, NomeDaCor } from '../scripts/modelo3d';
+
+  const palco = document.querySelector<HTMLElement>('[data-modelo]');
+  const trilho = document.querySelector<HTMLElement>('[data-modelo-trilho]');
+  const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let modelo: Modelo | undefined;
+
+  const limitar = (v: number) => Math.min(Math.max(v, 0), 1);
+  const suave = (t: number) => t * t * (3 - 2 * t);
+
+  /**
+   * A rolagem dentro do trilho, em três tempos:
+   * 1. o palco chega na largura do resto da página (o conteúdo, em 80%);
+   * 2. já fixo na tela, a primeira rolagem aumenta o bloco até o tamanho cheio;
+   * 3. rolando mais, o modelo desmonta camada por camada.
+   * Com "menos movimento" ligado não há nada disso: o palco fica grande e parado.
+   */
+  if (palco && trilho && !semMovimento) {
+    const secao = palco.closest('section');
+    const conteiner = secao?.querySelector<HTMLElement>('.conteiner');
+    /** Trecho do trilho em que o bloco cresce; o modelo começa a abrir depois dele. */
+    const CRESCER = 0.12;
+    const ABRIR = [0.2, 0.82] as const;
+    let escalaInicial = 1;
+    let agendado = false;
+
+    // O bloco começa com a largura do conteúdo das outras seções.
+    const medir = () => {
+      if (!conteiner) return;
+      const caixa = conteiner.getBoundingClientRect();
+      const zoom = caixa.width / conteiner.offsetWidth || 1;
+      const estilo = getComputedStyle(conteiner);
+      const conteudo = caixa.width - (parseFloat(estilo.paddingLeft) + parseFloat(estilo.paddingRight)) * zoom;
+      const larguraDoPalco = palco.offsetWidth * (trilho.getBoundingClientRect().width / trilho.offsetWidth || 1);
+      escalaInicial = larguraDoPalco > 0 ? Math.min(conteudo / larguraDoPalco, 1) : 1;
+    };
+
+    const acompanhar = () => {
+      agendado = false;
+      // O palco muda de escala (transform), então as medidas vêm do trilho e do CSS,
+      // que não mudam com ela. O trilho pode ter zoom: tudo é convertido para a tela.
+      const caixa = trilho.getBoundingClientRect();
+      const zoom = caixa.width / trilho.offsetWidth || 1;
+      const altura = palco.offsetHeight * zoom;
+      const topo = (parseFloat(getComputedStyle(palco).top) || 0) * zoom;
+      const curso = caixa.height - altura;
+      const progresso = curso > 0 ? limitar((topo - caixa.top) / curso) : 0;
+
+      // Sem diferença de largura (celular), não há o que crescer: abre mais cedo.
+      const cresce = escalaInicial < 0.98;
+      const crescido = cresce ? suave(limitar(progresso / CRESCER)) : 1;
+      palco.style.scale = String(escalaInicial + (1 - escalaInicial) * crescido);
+      const inicio = cresce ? ABRIR[0] : 0.06;
+      modelo?.abrir(suave(limitar((progresso - inicio) / (ABRIR[1] - ABRIR[0]))));
+    };
+    const agendar = () => {
+      if (agendado) return;
+      agendado = true;
+      requestAnimationFrame(acompanhar);
+    };
+
+    medir();
+    acompanhar();
+    window.addEventListener('scroll', agendar, { passive: true });
+    window.addEventListener('resize', () => {
+      medir();
+      agendar();
+    });
+  }
+
+  async function carregar(palco: HTMLElement) {
+    palco.dataset.estado = 'carregando';
+    let pronto: Modelo;
+    try {
+      const { iniciarModelo } = await import('../scripts/modelo3d');
+      pronto = await iniciarModelo(palco);
+    } catch {
+      palco.dataset.estado = 'erro';
+      return;
+    }
+    palco.dataset.estado = 'pronto';
+    modelo = pronto;
+    window.dispatchEvent(new Event('scroll'));
+
+    for (const opcao of palco.querySelectorAll<HTMLInputElement>('input[name="cor-do-case"]')) {
+      opcao.addEventListener('change', () => pronto.cor(opcao.value as NomeDaCor));
+    }
+
+    // Com "menos movimento" ligado não há palco fixo: o botão abre e fecha o modelo.
+    const alternar = palco.querySelector<HTMLButtonElement>('[data-modelo-alternar]');
+    alternar?.addEventListener('click', () => {
+      const aberto = alternar.getAttribute('aria-pressed') !== 'true';
+      alternar.setAttribute('aria-pressed', String(aberto));
+      pronto.abrir(aberto ? 1 : 0);
+    });
+  }
+
+  if (palco) {
+    const vigia = new IntersectionObserver(
+      (entradas) => {
+        if (!entradas.some((e) => e.isIntersecting)) return;
+        vigia.disconnect();
+        void carregar(palco);
+      },
+      { rootMargin: '700px 0px' },
+    );
+    vigia.observe(palco);
+  }
+</script>
+
+<style>
+  .modelo {
+    /* Um pouco menos de espaço em cima que as outras seções: fica mais perto do topo roxo. */
+    padding-block: calc(var(--secao) * 0.65) 0;
+  }
+  /* O texto vai de um lado ao outro, justificado, e fica perto do bloco do 3D. */
+  .secao-cabeca {
+    max-width: none;
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+  .secao-cabeca p {
+    text-align: justify;
+    hyphens: auto;
+  }
+  /* O 3D é a única parte fora do zoom de 80% do site: no tamanho cheio, sai da
+     largura do texto e ocupa quase a tela toda. Ele começa reduzido (o script aplica
+     "scale") na largura das outras seções e cresce na primeira rolagem.
+     O trilho é mais alto que o palco: é esse excesso de rolagem que cresce e abre. */
+  .trilho {
+    --topo: calc((10px + var(--altura-cabecalho)) * var(--zoom-site) + 12px);
+    zoom: calc(1 / var(--zoom-site));
+    height: 300vh;
+    max-width: 1600px;
+    margin-inline: auto;
+    /* No tamanho cheio sobra uma margem de 5% da tela de cada lado. */
+    padding-inline: max(var(--gutter), 5vw);
+  }
+  /* Fica logo abaixo da barra de navegação compacta. No tamanho cheio ocupa 94% da
+     altura que sobra na tela, deixando um respiro embaixo. */
+  .palco {
+    position: sticky;
+    top: var(--topo);
+    height: calc((100svh - var(--topo) - 12px) * 0.94);
+    border-radius: var(--raio-grande);
+    background: var(--cor-papel);
+    color: var(--cor-tinta);
+    overflow: hidden;
+    /* Cresce a partir da borda de cima: o bloco reduzido fica colado no texto. */
+    transform-origin: 50% 0;
+    will-change: scale;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: pan-y;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  canvas:active {
+    cursor: grabbing;
+  }
+  canvas:focus-visible {
+    outline: 2px solid var(--cor-roxo);
+    outline-offset: -6px;
+    border-radius: var(--raio-grande);
+  }
+  [data-estado='pronto'] canvas {
+    opacity: 1;
+  }
+
+  .estado {
+    position: absolute;
+    inset: 0;
+    display: none;
+    place-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 2rem;
+    text-align: center;
+    color: rgb(14 11 20 / 0.7);
+  }
+  [data-estado='carregando'] .carregando,
+  [data-estado='espera'] .carregando,
+  [data-estado='erro'] .erro {
+    display: grid;
+  }
+  .erro a {
+    color: var(--cor-tinta);
+    font-weight: 600;
+  }
+
+  /* As legendas ficam numa coluna fixa, na ordem da pilha (de cima para baixo), e
+     acendem conforme cada camada se separa. Girar o modelo não as mexe. */
+  .legendas {
+    position: absolute;
+    top: 50%;
+    right: clamp(1rem, 4vw, 3.5rem);
+    display: grid;
+    gap: 1.4rem;
+    width: min(16rem, 30%);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+    translate: 0 -50%;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .aberto .legendas {
+    opacity: 1;
+  }
+  .legendas li {
+    padding-left: 1rem;
+    border-left: 2px solid rgb(14 11 20 / 0.14);
+    opacity: 0.36;
+    line-height: 1.3;
+    transition:
+      opacity 0.35s,
+      border-color 0.35s;
+  }
+  .legendas li.revelada {
+    opacity: 1;
+  }
+  .legendas li.atual {
+    border-left-color: var(--cor-roxo);
+  }
+  .legendas strong {
+    display: block;
+    font-family: var(--fonte-titulo);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .legendas span {
+    font-size: 0.88rem;
+    color: rgb(14 11 20 / 0.72);
+  }
+
+  .controles {
+    position: absolute;
+    left: clamp(1rem, 3vw, 1.75rem);
+    right: clamp(1rem, 3vw, 1.75rem);
+    bottom: clamp(1rem, 3vw, 1.5rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    pointer-events: none;
+  }
+  .controles > * {
+    pointer-events: auto;
+  }
+  [data-estado]:not([data-estado='pronto']) .controles {
+    visibility: hidden;
+  }
+  /* Um GLB qualquer não tem as camadas nem as cores do Polpad One montado pelo site. */
+  [data-modo='generico'] :is(.legendas, .cores) {
+    display: none;
+  }
+  .cores {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(14 11 20 / 0.07);
+  }
+  .cores legend {
+    float: left;
+    padding: 0;
+    margin-right: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .cores label {
+    position: relative;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(14 11 20 / 0.25);
+    cursor: pointer;
+  }
+  .cores input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .cores label:has(input:checked) {
+    outline: 2px solid var(--cor-tinta);
+    outline-offset: 2px;
+  }
+  .cores label:has(input:focus-visible) {
+    outline: 2px solid var(--cor-roxo);
+    outline-offset: 2px;
+  }
+  .cores .roxo {
+    background: var(--cor-roxo);
+  }
+  .cores .preto {
+    background: #1b1624;
+  }
+  .cores .branco {
+    background: #fff;
+  }
+  .cores .limao {
+    background: var(--cor-lima);
+  }
+  .dica {
+    margin: 0 0 0 auto;
+    font-size: 0.85rem;
+    color: rgb(14 11 20 / 0.65);
+  }
+  .alternar {
+    display: none;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.9rem;
+  }
+  .alternar[aria-pressed='true'] .abrir,
+  .alternar[aria-pressed='false'] .fechar {
+    display: none;
+  }
+
+
+  /* Sem largura para uma coluna ao lado do modelo, fica uma legenda só, no canto:
+     a da camada que acabou de se separar. */
+  @media (max-width: 1099px) {
+    .legendas {
+      top: clamp(0.75rem, 2vw, 1.25rem);
+      right: auto;
+      left: clamp(0.75rem, 2vw, 1.25rem);
+      width: min(20rem, calc(100% - 1.5rem));
+      translate: none;
+    }
+    .legendas li {
+      display: none;
+      padding: 0.55rem 0.85rem;
+      border-left: 0;
+      border-radius: 14px;
+      background: rgb(255 255 255 / 0.82);
+    }
+    .legendas li.atual {
+      display: block;
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .legendas strong {
+      font-size: 0.85rem;
+    }
+    .legendas span {
+      font-size: 0.8rem;
+    }
+    /* O cabeçalho tem duas linhas no celular, e o modelo cabe num palco mais baixo. */
+    /* No celular a barra tem uma linha só, como no computador: o "--topo" é o mesmo. */
+    .trilho {
+      height: 190vh;
+    }
+    .palco {
+      height: min(calc(100svh - var(--topo) - 12px), 600px);
+    }
+    .dica {
+      display: none;
+    }
+  }
+
+  /* Sem animação: nada de palco fixo nem de rolagem que abre; o botão faz esse papel. */
+  @media (prefers-reduced-motion: reduce) {
+    .trilho {
+      height: auto;
+    }
+    .palco {
+      position: relative;
+      top: 0;
+    }
+    .alternar {
+      display: inline-flex;
+    }
+  }
+</style>

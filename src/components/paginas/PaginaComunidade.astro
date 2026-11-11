@@ -1,4 +1,7 @@
 ---
+// Comunidade: um painel roxo de abertura com o convite "Do It Yourself" para enviar
+// (em limão, passando da borda), filtros com a contagem de cada tipo e a grade de projetos,
+// que sempre termina com um cartão "o seu projeto aqui".
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import CartaoProjeto from '../CartaoProjeto.astro';
@@ -12,69 +15,162 @@ interface Props {
 
 const { idioma } = Astro.props;
 const projetos = ordenarPorData(await getCollection('comunidade'));
+const contagem = (tipo: string) => projetos.filter((p) => p.data.tipo === tipo).length;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 ---
 
-<Base idioma={idioma} titulo={t(idioma, 'comunidade_titulo')} alternativa={rota(outroIdioma(idioma), 'comunidade')}>
-  <section class="conteiner">
-    <header class="topo">
-      <div>
+<Base
+  idioma={idioma}
+  titulo={t(idioma, 'comunidade_titulo')}
+  descricao={t(idioma, 'comunidade_descricao')}
+  alternativa={rota(outroIdioma(idioma), 'comunidade')}>
+  <div class="conteiner pagina">
+    <header class="painel">
+      <img class="polvo" src={`${base}polvo.svg`} alt="" width="36" height="36" />
+      <div class="abertura">
         <h1>{t(idioma, 'comunidade_titulo')}</h1>
-        <p class="intro">{t(idioma, 'comunidade_intro')}</p>
+        <p>{t(idioma, 'comunidade_intro')}</p>
       </div>
-      <a class="botao botao-primario" href={urlEnviarProjeto(idioma)}>{t(idioma, 'comunidade_enviar')}</a>
+      <aside class="convite" aria-labelledby="convite-titulo">
+        <h2 id="convite-titulo">{t(idioma, 'comunidade_convite_titulo')}</h2>
+        <a class="botao botao-escuro" href={urlEnviarProjeto(idioma)}>{t(idioma, 'comunidade_enviar')}</a>
+      </aside>
     </header>
 
     <div class="filtros" role="group" aria-label={t(idioma, 'filtro_rotulo')}>
-      <button type="button" data-filtro="todos" aria-pressed="true">{t(idioma, 'filtro_todos')}</button>
-      {TIPOS.map((tipo) => <button type="button" data-filtro={tipo} aria-pressed="false">{t(idioma, `filtro_${tipo}`)}</button>)}
+      <button type="button" data-filtro="todos" aria-pressed="true">
+        {t(idioma, 'filtro_todos')}{' '}
+        <span class="conta">{projetos.length}</span>
+      </button>
+      {
+        TIPOS.map((tipo) => (
+          <button type="button" data-filtro={tipo} aria-pressed="false">
+            {t(idioma, `filtro_${tipo}`)}{' '}
+            <span class="conta">{contagem(tipo)}</span>
+          </button>
+        ))
+      }
     </div>
+
+    <!-- Fica sempre na página, vazio: quando um filtro não acha nada, o texto entra e o
+         leitor de tela anuncia. -->
+    <p class="vazio" role="status" data-texto={t(idioma, 'comunidade_vazio')}></p>
 
     <ul class="grade">
       {projetos.map((projeto) => <CartaoProjeto projeto={projeto} idioma={idioma} nivel={2} />)}
+      <li class="seu">
+        <a href={urlEnviarProjeto(idioma)}>
+          <span class="mais" aria-hidden="true"></span>
+          <strong>{t(idioma, 'comunidade_card_titulo')}</strong>
+          <span>{t(idioma, 'comunidade_card_texto')}</span>
+        </a>
+      </li>
     </ul>
-    <p class="vazio" hidden>{t(idioma, 'comunidade_vazio')}</p>
-  </section>
+  </div>
 </Base>
 
 <script>
   const botoes = document.querySelectorAll<HTMLButtonElement>('[data-filtro]');
   const cartoes = document.querySelectorAll<HTMLElement>('.grade > [data-tipo]');
   const vazio = document.querySelector<HTMLElement>('.vazio');
+
+  function filtrar(botao: HTMLButtonElement) {
+    const filtro = botao.dataset.filtro;
+    let visiveis = 0;
+    for (const cartao of cartoes) {
+      const mostra = filtro === 'todos' || cartao.dataset.tipo === filtro;
+      cartao.hidden = !mostra;
+      if (mostra) visiveis++;
+    }
+    for (const b of botoes) b.setAttribute('aria-pressed', String(b === botao));
+    if (vazio) vazio.textContent = visiveis > 0 ? '' : (vazio.dataset.texto ?? '');
+  }
+
+  // O filtro escolhido vai para o endereço (?tipo=case): dá para compartilhar o link
+  // já filtrado, e ele volta ao recarregar a página.
   for (const botao of botoes) {
     botao.addEventListener('click', () => {
+      filtrar(botao);
       const filtro = botao.dataset.filtro;
-      let visiveis = 0;
-      for (const cartao of cartoes) {
-        const mostra = filtro === 'todos' || cartao.dataset.tipo === filtro;
-        cartao.hidden = !mostra;
-        if (mostra) visiveis++;
-      }
-      for (const b of botoes) b.setAttribute('aria-pressed', String(b === botao));
-      if (vazio) vazio.hidden = visiveis > 0;
+      const url = new URL(location.href);
+      if (filtro === 'todos') url.searchParams.delete('tipo');
+      else url.searchParams.set('tipo', filtro ?? '');
+      history.replaceState(null, '', url);
     });
   }
+  const pedido = new URLSearchParams(location.search).get('tipo');
+  const inicial = [...botoes].find((b) => b.dataset.filtro === pedido);
+  if (inicial) filtrar(inicial);
 </script>
 
 <style>
-  section {
-    padding-block: 3rem;
+  .pagina {
+    padding-block: clamp(1rem, 3vw, 1.75rem) 0;
   }
-  .topo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+
+  /* Painel roxo de ponta a ponta; o convite em limão passa da borda de baixo. */
+  .painel {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    padding: clamp(1.75rem, 5vw, 3.5rem);
+    border-radius: var(--raio-painel);
+    background: var(--cor-roxo);
+  }
+  @media (min-width: 960px) {
+    .painel {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      align-items: end;
+      gap: 3rem;
+      margin-bottom: clamp(4rem, 7vw, 5rem);
+    }
+    .convite {
+      margin-bottom: calc(-1 * clamp(3.5rem, 7vw, 5.5rem));
+    }
+  }
+  /* O polvo em branco no canto do roxo, como no painel do topo da página inicial. */
+  .polvo {
+    position: absolute;
+    top: clamp(1.1rem, 2.5vw, 1.6rem);
+    left: clamp(1.1rem, 2.5vw, 1.6rem);
+    filter: brightness(0) invert(1);
+  }
+  /* O título acompanha a largura da coluna: "Comunidade" sempre cabe numa linha. O
+     espaço de cima é o do polvo. */
+  .abertura {
+    padding-top: 2.5rem;
+    container-type: inline-size;
   }
   h1 {
-    font-size: clamp(2rem, 6vw, 3.2rem);
+    margin: 0 0 1rem;
+    font-size: clamp(2.2rem, 12.4cqi, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
   }
-  .intro {
-    color: var(--cor-texto-suave);
-    max-width: 60ch;
+  .abertura p {
+    max-width: 34rem;
     margin: 0;
+    color: rgb(255 255 255 / 0.88);
+    font-size: clamp(1.02rem, 1.8vw, 1.15rem);
   }
+
+  .convite {
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    border: 2.5px solid var(--cor-tinta);
+    border-radius: var(--raio-grande);
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+    box-shadow: 0.45rem 0.45rem 0 var(--cor-tinta);
+    rotate: 1.5deg;
+  }
+  .convite h2 {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+    letter-spacing: -0.03em;
+  }
+
+  /* Filtros com a contagem de projetos de cada tipo. */
   .filtros {
     display: flex;
     flex-wrap: wrap;
@@ -82,27 +178,62 @@ const projetos = ordenarPorData(await getCollection('comunidade'));
     margin-bottom: 1.5rem;
   }
   .filtros button {
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--cor-texto-suave);
-    background: transparent;
-    border: 1px solid var(--cor-borda);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.55rem 0.45rem 1rem;
+    border: 0;
     border-radius: 999px;
-    padding: 0.4rem 0.95rem;
+    background: var(--cor-fundo-elevado);
+    box-shadow: inset 0 0 0 1px var(--cor-borda);
+    color: var(--cor-texto-suave);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
     cursor: pointer;
+    transition:
+      color 0.15s,
+      background-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .filtros button:hover {
+    color: var(--cor-texto);
+    box-shadow: inset 0 0 0 1px var(--cor-borda-forte);
+  }
+  .conta {
+    display: grid;
+    place-items: center;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    padding-inline: 0.4rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.08);
+    font-size: 0.8rem;
   }
   .filtros button[aria-pressed='true'] {
-    background: var(--cor-destaque);
-    border-color: var(--cor-destaque);
-    color: var(--cor-texto);
+    background: var(--cor-lima);
+    box-shadow: none;
+    color: var(--cor-tinta);
   }
+  .filtros button[aria-pressed='true'] .conta {
+    background: var(--cor-tinta);
+    color: var(--cor-lima);
+  }
+
+  .vazio {
+    margin: 0 0 1.25rem;
+    color: var(--cor-texto-suave);
+  }
+  .vazio:empty {
+    display: none;
+  }
+
   .grade {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.25rem;
-    padding: 0;
     margin: 0;
+    padding: 0;
   }
   @media (min-width: 640px) {
     .grade {
@@ -114,7 +245,74 @@ const projetos = ordenarPorData(await getCollection('comunidade'));
       grid-template-columns: repeat(3, 1fr);
     }
   }
-  .vazio {
+
+  /* O último cartão convida a enviar: contorno tracejado e um "+" grande. */
+  .seu {
+    list-style: none;
+  }
+  .seu a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.4rem;
+    height: 100%;
+    min-height: 16rem;
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    border: 2px dashed var(--cor-borda-forte);
+    border-radius: var(--raio-grande);
     color: var(--cor-texto-suave);
+    text-decoration: none;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+  }
+  .seu a:hover {
+    border-color: var(--cor-lima);
+    color: var(--cor-texto);
+  }
+  .seu strong {
+    font-family: var(--fonte-titulo);
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+    color: var(--cor-texto);
+  }
+  .mais {
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.75rem;
+    border-radius: 50%;
+    background: var(--cor-roxo);
+    transition:
+      background-color 0.2s,
+      rotate 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .mais::before,
+  .mais::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 1.1rem;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--cor-texto);
+    translate: -50% -50%;
+  }
+  .mais::after {
+    rotate: 90deg;
+  }
+  .seu a:hover .mais {
+    background: var(--cor-lima);
+    rotate: 90deg;
+  }
+  .seu a:hover .mais::before,
+  .seu a:hover .mais::after {
+    background: var(--cor-tinta);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seu a:hover .mais {
+      rotate: none;
+    }
   }
 </style>

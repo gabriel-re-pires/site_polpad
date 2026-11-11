@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { rota, t, type Idioma } from '../lib/i18n';
-import { dataPorExtenso } from '../lib/formato';
+import { dataPorExtenso, paragrafos, resumo } from '../lib/formato';
 
 interface Props {
   projeto: CollectionEntry<'comunidade'>;
@@ -13,67 +13,146 @@ interface Props {
 
 const { projeto, idioma, nivel = 3 } = Astro.props;
 const Titulo = nivel === 2 ? 'h2' : 'h3';
-const { titulo, tipo, autor, capa, data } = projeto.data;
+const { titulo, tipo, autor, capa, data, descricao } = projeto.data;
+// O começo da descrição, para saber do que se trata sem abrir o projeto.
+const chamada = resumo(paragrafos(descricao)[0] ?? '', 120);
+// Iniciais do autor, no lugar de uma foto (a página não carrega imagens de fora).
+const iniciais = autor.nome
+  .split(/\s+/)
+  .filter((parte) => /^\p{Lu}/u.test(parte))
+  .slice(0, 2)
+  .map((parte) => parte[0])
+  .join('');
 ---
 
 <li class="cartao" data-tipo={tipo}>
   <a href={rota(idioma, 'comunidade', projeto.id)}>
-    <Image src={capa} alt="" widths={[360, 640]} sizes="(min-width: 960px) 360px, 100vw" class="capa" />
+    <div class="moldura" style={`view-transition-name: projeto-${projeto.id}`}>
+      <Image src={capa} alt="" widths={[360, 640]} sizes="(min-width: 960px) 360px, 100vw" class="capa" />
+    </div>
     <div class="texto">
       <span class="tipo">{t(idioma, `tipo_${tipo}`)}</span>
       <Titulo class="titulo">{titulo}</Titulo>
+      {chamada && <p class="chamada">{chamada}</p>}
       <p class="meta">
-        {`${t(idioma, 'projeto_por')} ${autor.nome}`} · <time datetime={data.toISOString().slice(0, 10)}
-          >{dataPorExtenso(data, idioma)}</time
-        >
+        <span class="iniciais" aria-hidden="true">{iniciais || autor.nome[0]}</span>
+        <span>
+          {`${t(idioma, 'projeto_por')} ${autor.nome}`}
+          <br />
+          <time datetime={data.toISOString().slice(0, 10)}>{dataPorExtenso(data, idioma)}</time>
+        </span>
       </p>
     </div>
   </a>
 </li>
 
 <style>
+  /* A capa fica dentro do cartão, com uma borda de respiro e cantos concêntricos. */
   .cartao {
+    --respiro: 0.6rem;
     list-style: none;
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio);
+    border-radius: var(--raio-grande);
     background: var(--cor-fundo-elevado);
-    overflow: hidden;
-    transition: border-color 0.15s, transform 0.15s;
+    box-shadow: inset 0 0 0 1px var(--cor-borda);
+    transition:
+      translate 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.2s;
   }
-  .cartao:hover {
-    border-color: var(--cor-destaque);
-    transform: translateY(-2px);
+  .cartao:hover,
+  .cartao:focus-within {
+    translate: 0 -4px;
+    box-shadow: inset 0 0 0 1px var(--cor-borda-forte);
+  }
+  .cartao a:focus-visible {
+    outline-offset: 3px;
+    border-radius: var(--raio-grande);
   }
   a {
     display: block;
-    text-decoration: none;
     height: 100%;
+    padding: var(--respiro);
+    text-decoration: none;
+  }
+  .moldura {
+    overflow: hidden;
+    border-radius: calc(var(--raio-grande) - var(--respiro));
   }
   .capa {
+    display: block;
     width: 100%;
     aspect-ratio: 16 / 10;
     object-fit: cover;
     background: var(--cor-borda);
+    transition: scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cartao:hover .capa {
+    scale: 1.04;
   }
   .texto {
-    padding: 1rem 1.1rem 1.2rem;
+    padding: 0 0.75rem 0.85rem;
   }
+  /* A pílula do tipo sobe e fica metade sobre a capa, recortada na cor do cartão. */
   .tipo {
-    font-size: 0.8rem;
+    position: relative;
+    display: block;
+    width: fit-content;
+    margin-top: -0.9rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    background: var(--cor-lima);
+    box-shadow: 0 0 0 5px var(--cor-fundo-elevado);
+    font-size: 0.78rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--cor-texto-suave);
+    color: var(--cor-tinta);
   }
   .titulo {
-    font-family: var(--fonte-texto);
+    margin: 0.75rem 0 0.9rem;
+    font-family: var(--fonte-titulo);
     font-weight: 600;
-    font-size: 1.1rem;
-    margin: 0.3rem 0;
+    font-size: 1.2rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .chamada {
+    display: -webkit-box;
+    margin: -0.4rem 0 1rem;
+    overflow: hidden;
+    color: var(--cor-texto-suave);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
   .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.86rem;
+    line-height: 1.35;
     color: var(--cor-texto-suave);
+  }
+  .iniciais {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    background: var(--cor-roxo);
+    color: var(--cor-texto);
+    font-family: var(--fonte-titulo);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cartao:hover,
+    .cartao:focus-within {
+      translate: none;
+    }
+    .cartao:hover .capa {
+      scale: none;
+    }
   }
 </style>

@@ -1,0 +1,109 @@
+---
+import { t, type Idioma, type ChaveTexto } from '../lib/i18n';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+
+// Os ícones são desenhos simples em traço, no mesmo estilo do resto da página.
+const recursos: { chave: string; icone: string }[] = [
+  { chave: 'perfis', icone: 'M4 6h16M4 12h16M4 18h10' },
+  { chave: 'display', icone: 'M3 5h18v11H3zM8 20h8M12 16v4' },
+  { chave: 'bluetooth', icone: 'M7 7l10 10-5 5V2l5 5L7 17' },
+  { chave: 'firmware', icone: 'M12 3v12M7 10l5 5 5-5M5 21h14' },
+  { chave: 'hotswap', icone: 'M5 5h14v14H5zM9 9h6v6H9z' },
+  { chave: 'aberto', icone: 'M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16' },
+];
+const texto = (c: string, sufixo = '') => t(idioma, `recurso_${c}${sufixo}` as ChaveTexto);
+---
+
+<section class="recursos" aria-labelledby="recursos-titulo">
+  <div class="conteiner">
+    <div class="secao-cabeca">
+      <h2 id="recursos-titulo">{t(idioma, 'recursos_titulo')}</h2>
+      <p>{t(idioma, 'recursos_intro')}</p>
+    </div>
+    <ul class="grade">
+      {
+        recursos.map(({ chave, icone }) => (
+          <li>
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d={icone} />
+            </svg>
+            <h3>{texto(chave)}</h3>
+            <p>{texto(chave, '_texto')}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .recursos {
+    padding-block: var(--secao) 0;
+  }
+  /* Título fixo à esquerda e a lista em linhas à direita, separadas por fios. */
+  .conteiner {
+    display: grid;
+    gap: 1rem 4rem;
+  }
+  @media (min-width: 960px) {
+    .conteiner {
+      grid-template-columns: 5fr 7fr;
+      align-items: start;
+    }
+    .secao-cabeca {
+      position: sticky;
+      top: calc(var(--altura-cabecalho) + 2rem);
+    }
+  }
+  .grade {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem clamp(1.25rem, 3.5vw, 2.5rem);
+    border-radius: var(--raio-painel);
+    background: var(--cor-fundo-elevado);
+  }
+  li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1.25rem;
+    padding-block: 1.5rem;
+  }
+  li + li {
+    border-top: 1px solid var(--cor-borda-forte);
+  }
+  svg {
+    grid-row: span 2;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.65rem;
+    border-radius: 14px;
+    background: var(--cor-tinta);
+    color: var(--cor-lima);
+  }
+  h3 {
+    font-family: var(--fonte-texto);
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+    margin: 0.15rem 0 0.2rem;
+  }
+  p {
+    color: var(--cor-texto-suave);
+    margin: 0;
+  }
+</style>

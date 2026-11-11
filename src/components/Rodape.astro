@@ -1,47 +1,310 @@
 ---
-import { t, type Idioma } from '../lib/i18n';
-import { AUTORES, REPO_SITE } from '../lib/site';
+import { IDIOMAS, langHtml, rota, t, type Idioma } from '../lib/i18n';
+import { AUTORES, REPO_POLPAD, REPO_SITE } from '../lib/site';
+import { urlEnviarProjeto, urlInstalar, urlMontagem } from '../lib/links';
 
 interface Props {
   idioma: Idioma;
+  /** A mesma página no outro idioma. */
+  alternativa: string;
 }
 
-const { idioma } = Astro.props;
+const { idioma, alternativa } = Astro.props;
+// Cada idioma com o próprio nome, como ele é escrito nele mesmo.
+const NOMES: Record<Idioma, string> = { 'pt-br': 'Português', en: 'English' };
 const [primeiro, segundo] = AUTORES;
+
+const colunas = [
+  {
+    titulo: t(idioma, 'rodape_produto'),
+    links: [
+      { href: rota(idioma, 'baixar'), texto: t(idioma, 'nav_baixar') },
+      { href: rota(idioma, 'comunidade'), texto: t(idioma, 'nav_comunidade') },
+      { href: urlEnviarProjeto(idioma), texto: t(idioma, 'comunidade_enviar') },
+    ],
+  },
+  {
+    titulo: t(idioma, 'rodape_aprender'),
+    links: [
+      { href: rota(idioma, 'docs'), texto: t(idioma, 'nav_docs') },
+      { href: urlMontagem(idioma), texto: t(idioma, 'baixar_como_montar') },
+      { href: urlInstalar(idioma), texto: t(idioma, 'baixar_como_instalar') },
+    ],
+  },
+  {
+    titulo: t(idioma, 'rodape_codigo'),
+    links: [
+      { href: REPO_POLPAD, texto: t(idioma, 'rodape_repo_polpad') },
+      { href: `${REPO_POLPAD}/releases`, texto: t(idioma, 'rodape_versoes') },
+      { href: REPO_SITE, texto: t(idioma, 'rodape_codigo_site') },
+    ],
+  },
+  {
+    titulo: t(idioma, 'rodape_criadores'),
+    links: [segundo, primeiro].map((autor) => ({ href: autor.site, texto: autor.curto })),
+  },
+];
 ---
 
 <footer class="rodape">
-  <div class="conteiner linhas">
-    <p>
-      {`${t(idioma, 'rodape_feito_por')} `}<a href={`https://github.com/${primeiro.github}`}
-        >{primeiro.nome}</a
-      >{` ${t(idioma, 'rodape_e')} `}<a href={`https://github.com/${segundo.github}`}
-        >{segundo.nome}</a
-      >.
-    </p>
-    <p>{t(idioma, 'rodape_software')} · {t(idioma, 'rodape_hardware')}</p>
-    <p><a href={REPO_SITE}>{t(idioma, 'rodape_codigo_site')}</a></p>
+  <div class="conteiner">
+    <div class="topo">
+      {
+        colunas.map((coluna) => (
+          <nav aria-label={coluna.titulo}>
+            <h2>{coluna.titulo}</h2>
+            <ul>
+              {coluna.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.texto}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+    <p class="assinatura" aria-hidden="true">Polpad</p>
+    <div class="base">
+      <p>
+        {`${t(idioma, 'rodape_feito_por')} `}<a href={`https://github.com/${primeiro.github}`}
+          >{primeiro.nome}</a
+        >{` ${t(idioma, 'rodape_e')} `}<a href={`https://github.com/${segundo.github}`}
+          >{segundo.nome}</a
+        >.
+      </p>
+      <p>{t(idioma, 'rodape_software')} · {t(idioma, 'rodape_hardware')}</p>
+      <!-- Idioma: mostra o atual; a setinha abre uma caixa com os dois, um embaixo do outro. -->
+      <details class="idioma" data-idioma>
+        <summary aria-label={`${t(idioma, 'rodape_idioma')}: ${NOMES[idioma]}`}>
+          <span>{NOMES[idioma]}</span>
+          <svg class="seta" viewBox="0 0 12 8" width="12" height="8" aria-hidden="true">
+            <path d="M1 1.5 6 6.5l5-5" />
+          </svg>
+        </summary>
+        <ul>
+          {
+            IDIOMAS.map((cada) => (
+              <li>
+                {cada === idioma ? (
+                  <span class="opcao atual" lang={langHtml(cada)} aria-current="true">
+                    {NOMES[cada]}
+                  </span>
+                ) : (
+                  <a class="opcao" href={alternativa} hreflang={langHtml(cada)} lang={langHtml(cada)}>
+                    {NOMES[cada]}
+                  </a>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+      </details>
+    </div>
   </div>
 </footer>
+
+<script>
+  // A caixa de idiomas fecha ao clicar fora dela ou ao apertar Esc.
+  for (const caixa of document.querySelectorAll<HTMLDetailsElement>('[data-idioma]')) {
+    document.addEventListener('click', (evento) => {
+      if (caixa.open && !caixa.contains(evento.target as Node)) caixa.open = false;
+    });
+    caixa.addEventListener('keydown', (evento) => {
+      if (evento.key !== 'Escape' || !caixa.open) return;
+      caixa.open = false;
+      caixa.querySelector('summary')?.focus();
+    });
+  }
+</script>
 
 <style>
   .rodape {
     border-top: 1px solid var(--cor-borda);
-    margin-top: 4rem;
+    margin-top: var(--secao);
     color: var(--cor-texto-suave);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
-  .linhas {
+  /* As colunas ficam espalhadas pela largura, cada uma centralizada no seu espaço;
+     dentro delas, o título e os links seguem alinhados à esquerda. */
+  .topo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    justify-items: center;
+    gap: 2.5rem 2rem;
+    padding-block: 3.5rem 3rem;
+  }
+  h2 {
+    font-family: var(--fonte-texto);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--cor-texto);
+    margin-bottom: 0.9rem;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  a {
+    text-decoration: none;
+  }
+  ul a:hover,
+  .base a:hover {
+    color: var(--cor-texto);
+  }
+  /* O nome da marca vazado, ocupando a largura toda: a assinatura do site. */
+  .assinatura {
+    margin: 0 0 -0.12em;
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    font-size: clamp(4.2rem, 18.6vw, 15rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--cor-fundo);
+    -webkit-text-stroke: 3px var(--cor-borda-forte);
+    paint-order: stroke fill;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .assinatura {
+    position: relative;
+    width: fit-content;
+  }
+  .assinatura::after {
+    content: 'Polpad';
+    position: absolute;
+    inset: 0;
+    color: var(--cor-roxo);
+    -webkit-text-stroke: 3px var(--cor-roxo);
+    paint-order: stroke fill;
+    /* Folga fora da caixa do texto: a perna do "p" desce abaixo da linha e o "d"
+       passa um pouco da largura (o espaçamento entre letras é negativo). */
+    clip-path: inset(-0.3em 100% -0.3em -0.1em);
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .assinatura::after {
+        animation: encher linear both;
+        animation-timeline: view();
+        animation-range: entry 5% entry 100%;
+      }
+    }
+  }
+  @keyframes encher {
+    to {
+      clip-path: inset(-0.3em -0.1em -0.3em -0.1em);
+    }
+  }
+  .base {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 0.5rem 2rem;
-    padding-block: 2rem;
+    padding-block: 1.5rem 2rem;
+    border-top: 1px solid var(--cor-borda);
+    font-size: 0.85rem;
+    color: var(--cor-texto-fraco);
   }
-  p {
+  .base p {
     margin: 0;
   }
-  a:hover {
+  .base a {
+    color: var(--cor-texto-suave);
+    text-decoration: underline;
+    text-decoration-color: var(--cor-borda-forte);
+    text-underline-offset: 3px;
+  }
+
+  /* Seletor de idioma: o idioma atual com uma setinha "V"; ao abrir, uma caixa sobe com
+     os dois idiomas, um embaixo do outro, e o atual marcado em limão. */
+  .idioma {
+    position: relative;
+  }
+  .idioma summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.35rem 0.2rem;
+    color: var(--cor-texto-suave);
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  .idioma summary::-webkit-details-marker {
+    display: none;
+  }
+  .idioma summary:hover,
+  .idioma[open] summary {
     color: var(--cor-texto);
+  }
+  .seta {
+    fill: none;
+    stroke: var(--cor-lima);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .idioma[open] .seta {
+    rotate: 180deg;
+  }
+  .idioma ul {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.5rem);
+    z-index: 5;
+    display: grid;
+    gap: 0.25rem;
+    min-width: 11rem;
+    margin: 0;
+    padding: 0.4rem;
+    border-radius: 16px;
+    background: var(--cor-fundo-elevado);
+    box-shadow:
+      inset 0 0 0 1px var(--cor-borda-forte),
+      0 1rem 2rem rgb(0 0 0 / 0.4);
+    list-style: none;
+  }
+  /* No celular o seletor desce para uma linha própria, à esquerda: a caixa abre a partir dela. */
+  @media (max-width: 640px) {
+    .idioma ul {
+      right: auto;
+      left: 0;
+    }
+  }
+  .idioma .opcao {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 11px;
+    color: var(--cor-texto-suave);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  .idioma a.opcao:hover {
+    background: rgb(255 255 255 / 0.06);
+    color: var(--cor-texto);
+  }
+  .idioma .opcao.atual {
+    background: rgb(216 243 67 / 0.1);
+    color: var(--cor-lima);
+  }
+  /* Um ponto limão marca o idioma em que a página está. */
+  .idioma .opcao.atual::after {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--cor-lima);
   }
 </style>
