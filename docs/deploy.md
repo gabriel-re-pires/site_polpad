@@ -100,15 +100,19 @@ Na Vercel: Project → Settings → Domains → Add:
 A Vercel mostra os valores de DNS de cada um. Use exatamente os que
 aparecerem: o IP muda de projeto para projeto.
 
-No registro.br: Domínios → polpad.com.br → DNS → Editar zona. Use o DNS do
-próprio registro.br, que já vem com DNSSEC ligado. Confira em "DNSSEC" que o
-status está ativo.
+No registro.br: Domínios → polpad.com.br → DNS → Configurar endereçamento →
+Modo avançado. Não troque os servidores DNS: os do registro.br já vêm com
+DNSSEC. Ao entrar no modo avançado a zona começa vazia e leva alguns minutos
+para liberar a edição. O registro.br não aceita `@` (deixe o nome vazio) nem
+registro CAA.
+
+Configuração atual:
 
 | Nome | Tipo | Valor | Para quê |
 |---|---|---|---|
-| (vazio) | A | IP que a Vercel mostrar | site |
-| `www` | CNAME | valor que a Vercel mostrar | www |
-| (vazio) | CAA | `0 issue "letsencrypt.org"` | só a Let's Encrypt (usada pela Vercel) emite certificado |
+| (vazio) | A | `216.198.79.1` | site |
+| (vazio) | A | `64.29.17.1` | site |
+| `www` | CNAME | `7649b5ba8201cd4e.vercel-dns-017.com` | www |
 | (vazio) | TXT | `v=spf1 -all` | ninguém envia e-mail como @polpad.com.br |
 | `_dmarc` | TXT | `v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s` | servidores recusam e-mail falso do domínio |
 
@@ -138,8 +142,10 @@ comunidade são baixados do GitHub, não da Vercel, o que já tira o peso maior.
 - **Firewall → Bot Protection**: ligue em modo Challenge.
 - **Firewall → Rules → Add Rule** (o Hobby dá 1 regra de limite):
   - If: Request Path starts with `/`
-  - Then: Rate Limit, Fixed Window, 60 s, 1000 requisições, por IP
-  - Action: Deny (429)
+  - Then: Rate Limit, Fixed Window, 60 s, 1000 requisições, por IP (o
+    padrão é 30, baixo demais)
+  - Action: Too Many Requests (429) ou Deny (403)
+  - Depois: Review Changes → Publish, senão a regra não vale.
 
   Muita gente no Brasil divide o mesmo IP com outros clientes da operadora
   (CGNAT), então o limite tem de ser folgado: 1000 por minuto ainda segura um
@@ -148,13 +154,9 @@ comunidade são baixados do GitHub, não da Vercel, o que já tira o peso maior.
   por um desafio até você desligar.
 
 O `vercel.json` já manda os cabeçalhos de segurança (CSP, HSTS, anti-iframe,
-nosniff). Para conferir depois do deploy:
-
-```bash
-curl -sI https://polpad.com.br/
-```
-
-ou <https://developer.mozilla.org/en-US/observatory>.
+nosniff). Com o Bot Protection ligado, programas como `curl` recebem 429 com
+`X-Vercel-Mitigated: challenge`: é o desafio funcionando. Confira o site num
+navegador, ou em <https://developer.mozilla.org/en-US/observatory>.
 
 ## 9. Cloudflare: não precisa
 
