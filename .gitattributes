@@ -9,3 +9,4 @@
 *.step binary
 *.bin binary
 *.zip binary
+*.glb binary

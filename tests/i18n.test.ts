@@ -27,7 +27,7 @@ describe('caminhoCom', () => {
 describe('rota', () => {
   it('traduz o caminho da rota para o idioma', () => {
     expect(rota('en', 'baixar')).toBe('/en/download/');
-    expect(rota('pt-br', 'baixar')).toBe('/baixar/');
+    expect(rota('pt-br', 'baixar')).toBe('/download/');
     expect(rota('pt-br', 'inicio')).toBe('/');
     expect(rota('en', 'comunidade', 'meu-case')).toBe('/en/community/meu-case/');
   });
@@ -48,7 +48,7 @@ describe('idiomas', () => {
 });
 
 describe('linksAlternativos', () => {
-  const pt = 'https://x.dev/site_polpad/baixar/';
+  const pt = 'https://x.dev/site_polpad/download/';
   const en = 'https://x.dev/site_polpad/en/download/';
 
   it('liga as duas versões da página e usa a em português como padrão', () => {

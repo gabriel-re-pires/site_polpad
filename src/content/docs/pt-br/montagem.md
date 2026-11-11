@@ -1,12 +1,12 @@
 ---
-titulo: Montagem
+titulo: Montagem do Macropad
 descricao: Peças, pinagem do ESP32-C3 SuperMini e impressão do case.
 chave: montagem
 ordem: 1
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/docs/PINAGEM.md
 ---
 
-O Polpad é um macropad de 18 teclas com display, feito em volta de um
+O Polpad One é um macropad de 18 teclas com display, feito em volta de um
 ESP32-C3 SuperMini. O módulo e o display ocupam o canto superior esquerdo da
 placa, onde ficariam as duas primeiras teclas.
 
@@ -18,10 +18,14 @@ placa, onde ficariam as duas primeiras teclas.
 | Switches mecânicos (soquetes Kailh hot-swap) | 18 |
 | Diodos (um por tecla) | 18 |
 | Display OLED SSD1306 0,96" 128×64, I2C | 1 |
-| Placa (PCB) do Polpad | 1 |
+| Placa (PCB) do Polpad One | 1 |
 | Case impresso em 3D (tampa e base) | 1 |
 
-Os arquivos da placa e o esquemático serão publicados em breve.
+Os arquivos da placa (Gerbers para fabricar, projeto no EasyEDA Pro e
+esquemático) estão na pasta
+[`hardware/PCB_polpad`](https://github.com/gabriel-re-pires/polpad/tree/main/hardware/PCB_polpad)
+do repositório. Antes de fabricar, confira a lista de ligações que acompanha
+os arquivos.
 
 ## Pinagem
 
@@ -53,4 +57,4 @@ display, e a base.
 - **G-code pronto:** existe um para a Creality Ender-3 V3 SE (Cura 5.12,
   camada de 0,12 mm). Ele só serve para essa impressora.
 
-Os arquivos estão na página [Baixar](../../baixar/).
+Os arquivos estão na página [Download](../../download/).

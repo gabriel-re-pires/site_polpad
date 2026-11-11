@@ -5,6 +5,10 @@
   "outputDirectory": "dist",
   "trailingSlash": true,
   "git": { "deploymentEnabled": false },
+  "redirects": [
+    { "source": "/baixar", "destination": "/download/", "permanent": true },
+    { "source": "/baixar/", "destination": "/download/", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",

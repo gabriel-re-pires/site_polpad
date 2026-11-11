@@ -1,14 +1,14 @@
 ---
-titulo: Install the app
+titulo: Install Software
 descricao: Install Polpad on Windows and Linux.
 chave: instalar
 ordem: 2
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/tools/LEIA-ME-linux.txt
 ---
 
-The Polpad app sets up the keys and the display and flashes the macropad
-firmware. It runs on Windows and Linux. The app itself is in Portuguese for
-now.
+Polpad is the app that sets up the keys and the display of the Polpad One
+and flashes its firmware. It runs on Windows and Linux. The app itself is in
+Portuguese for now.
 
 ## Windows
 
@@ -16,7 +16,7 @@ now.
    page.
 2. Run the installer and follow the steps. You can choose to start Polpad
    with Windows: it opens minimized in the tray.
-3. Plug the macropad in over USB and open Polpad.
+3. Plug the Polpad One in over USB and open Polpad.
 
 When a new version comes out, the app tells you and updates itself. The
 option is in the menu (☰), under **Versão e atualizações** (version and
@@ -31,7 +31,7 @@ updates).
    menu. Choose **Instalar** (install): it goes into your home folder
    (`~/.local`) and needs no password. After that, the extracted folder can
    be deleted.
-4. If the macropad shows as disconnected, click **Liberar acesso** (grant
+4. If the Polpad One shows as disconnected, click **Liberar acesso** (grant
    access). The system asks for the administrator password once to unlock
    the USB port.
 

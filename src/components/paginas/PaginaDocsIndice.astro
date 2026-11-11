@@ -1,8 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
-import DocsLayout from '../../layouts/Docs.astro';
+// Índice dos docs: os guias são uma sequência (montar, instalar, firmware, enviar),
+// então aparecem como um mosaico numerado, cada um com as
+// seções que tem dentro, com link direto para elas.
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
 import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
-import { docsDoIdioma, urlDoc } from '../../lib/docs';
+import { corDoGuia, docsDoIdioma, urlDoc } from '../../lib/docs';
+import { REPO_POLPAD } from '../../lib/site';
 
 interface Props {
   idioma: Idioma;
@@ -10,52 +14,296 @@ interface Props {
 
 const { idioma } = Astro.props;
 const lista = docsDoIdioma(await getCollection('docs'), idioma);
+const guias = await Promise.all(
+  lista.map(async (doc, i) => {
+    const { headings } = await render(doc);
+    return {
+      doc,
+      numero: String(i + 1).padStart(2, '0'),
+      // Uma cor por guia (roxo, claro, claro e limão), a mesma do topo da página dele.
+      cor: corDoGuia(i),
+      secoes: headings.filter((h) => h.depth === 2),
+    };
+  }),
+);
 ---
 
-<DocsLayout idioma={idioma} titulo={t(idioma, 'docs_titulo')} alternativa={rota(outroIdioma(idioma), 'docs')}>
-  <h1>{t(idioma, 'docs_titulo')}</h1>
-  <p class="intro">{t(idioma, 'docs_intro')}</p>
-  <ul class="lista">
-    {
-      lista.map((doc) => (
-        <li>
-          <a href={urlDoc(idioma, doc)}>
-            <strong>{doc.data.titulo}</strong>
-            <span>{doc.data.descricao}</span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-</DocsLayout>
+<Base
+  idioma={idioma}
+  titulo={t(idioma, 'docs_titulo')}
+  descricao={t(idioma, 'docs_descricao')}
+  alternativa={rota(outroIdioma(idioma), 'docs')}>
+  <div class="conteiner pagina">
+    <header class="topo">
+      <h1>{t(idioma, 'docs_titulo')}</h1>
+    </header>
+
+    <ol class="guias">
+      {
+        guias.map((g) => (
+          <li class:list={['guia', g.cor]} style={`view-transition-name: guia-${g.doc.data.chave}`}>
+            <div class="cabeca">
+              <span class="visor" aria-hidden="true">
+                {g.numero}
+              </span>
+            </div>
+            <h2>
+              <a class="principal" href={urlDoc(idioma, g.doc)}>
+                {g.doc.data.titulo}
+              </a>
+            </h2>
+            {g.secoes.length > 0 && (
+              <div class="secoes">
+                <p class="rotulo">{t(idioma, 'docs_neste_guia')}</p>
+                <ul>
+                  {g.secoes.map((s) => (
+                    <li>
+                      <a href={`${urlDoc(idioma, g.doc)}#${s.slug}`}>{s.text}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <span class="abrir" aria-hidden="true">
+              {t(idioma, 'docs_abrir')}
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <aside class="ajuda">
+      <div>
+        <h2>{t(idioma, 'docs_ajuda_titulo')}</h2>
+        <p>{t(idioma, 'docs_ajuda_texto')}</p>
+      </div>
+      <div class="botoes">
+        <a class="botao botao-primario" href={`${REPO_POLPAD}/issues/new`}>{t(idioma, 'docs_ajuda_issue')}</a>
+        <a class="botao botao-secundario" href={rota(idioma, 'comunidade')}>{t(idioma, 'docs_ajuda_comunidade')}</a>
+      </div>
+    </aside>
+  </div>
+</Base>
 
 <style>
-  .intro {
-    color: var(--cor-texto-suave);
+  .pagina {
+    padding-block: clamp(2.5rem, 6vw, 4.5rem) 0;
   }
-  .lista {
-    list-style: none;
-    padding: 0;
+
+  /* Só o título, enorme, em cima do mosaico. */
+  .topo {
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(3.5rem, 13vw, 9rem);
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+  }
+
+  /* Mosaico dos guias: dois por linha, cada um de uma cor, com o botão de abrir
+     passando da borda de baixo. O cartão inteiro é clicável. */
+  .guias {
     display: grid;
-    gap: 1rem;
+    gap: 2.75rem var(--vao);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
-  .lista a {
-    display: block;
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio);
-    background: var(--cor-fundo-elevado);
-    padding: 1rem 1.25rem;
+  @media (min-width: 760px) {
+    .guias {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .guia {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 19rem;
+    padding: clamp(1.4rem, 3vw, 2rem) clamp(1.4rem, 3vw, 2rem) 2.75rem;
+    border-radius: var(--raio-grande);
+    transition: translate 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .guia:hover,
+  .guia:focus-within {
+    translate: 0 -4px;
+  }
+  /* Número, título e descrição alinhados no alto (os títulos de uma mesma linha ficam
+     na mesma altura); os atalhos de seção descem para o pé do cartão. */
+  .cabeca {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 2.25rem;
+  }
+  /* O número num "display" preto com fonte de pixel, como o OLED do Polpad One. */
+  .visor {
+    padding: 0.5rem 0.7rem 0.4rem;
+    border-radius: 8px;
+    background: #000;
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.08);
+    color: #fff;
+    font-family: var(--fonte-pixel);
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+  /* Um cursor de pixel, escondido, que pisca quando o cartão está sob o mouse ou o foco.
+     O espaço dele fica sempre reservado, para o número não pular. */
+  .visor::after {
+    content: '_';
+    opacity: 0;
+  }
+  .guia:is(:hover, :focus-within) .visor::after {
+    animation: cursor 1s steps(1) infinite;
+  }
+  @keyframes cursor {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  h2 {
+    margin: 0 0 1.5rem;
+    font-size: clamp(1.6rem, 3.2vw, 2.25rem);
+    letter-spacing: -0.03em;
+  }
+  .principal {
+    color: inherit;
     text-decoration: none;
   }
-  .lista a:hover {
-    border-color: var(--cor-destaque);
+  /* O link do título cobre o cartão; os links das seções ficam por cima dele. */
+  .principal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
   }
-  .lista strong {
-    display: block;
-    margin-bottom: 0.2rem;
+  .principal:focus-visible {
+    outline: none;
   }
-  .lista span {
+  .guia:has(.principal:focus-visible) {
+    outline: 3px solid var(--cor-lima);
+    outline-offset: 4px;
+  }
+  .secoes {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+  }
+  .rotulo {
+    margin: 0 0 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+  .secoes ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .secoes a {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.14);
+    color: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s;
+  }
+  .secoes a:hover {
+    background: rgb(255 255 255 / 0.26);
+  }
+  /* "Abrir o guia": uma pílula preta que passa da borda de baixo do cartão. */
+  .abrir {
+    position: absolute;
+    left: clamp(1.4rem, 3vw, 2rem);
+    bottom: 0;
+    translate: 0 50%;
+    padding: 0.6rem 1.25rem;
+    border-radius: 999px;
+    background: var(--cor-tinta);
+    color: var(--cor-texto);
+    box-shadow: 0 0 0 5px var(--cor-fundo);
+    font-weight: 600;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+    pointer-events: none;
+  }
+  .guia:hover .abrir {
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+  }
+
+  .roxo {
+    background: var(--cor-roxo);
+    color: var(--cor-texto);
+  }
+  .claro {
+    background: var(--cor-papel);
+    color: var(--cor-tinta);
+  }
+  .claro .secoes a {
+    background: rgb(14 11 20 / 0.08);
+  }
+  .claro .secoes a:hover {
+    background: rgb(14 11 20 / 0.16);
+  }
+  .lima {
+    background: var(--cor-lima);
+    color: var(--cor-tinta);
+  }
+  .lima .secoes a {
+    background: rgb(14 11 20 / 0.1);
+  }
+  .lima .secoes a:hover {
+    background: rgb(14 11 20 / 0.18);
+  }
+  .lima:hover .abrir {
+    background: var(--cor-roxo);
+    color: var(--cor-texto);
+  }
+
+  /* Ajuda: uma faixa larga no fim, para quem travou. */
+  .ajuda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem 2rem;
+    margin-top: clamp(4rem, 8vw, 5.5rem);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border-radius: var(--raio-painel);
+    box-shadow: inset 0 0 0 1px var(--cor-borda-forte);
+  }
+  .ajuda h2 {
+    font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+  }
+  .ajuda > div:first-child {
+    flex: 1 1 26rem;
+  }
+  .ajuda p {
+    max-width: 44rem;
+    margin: 0;
     color: var(--cor-texto-suave);
-    font-size: 0.95rem;
+  }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .guia:hover,
+    .guia:focus-within {
+      translate: none;
+    }
   }
 </style>

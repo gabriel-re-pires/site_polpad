@@ -49,18 +49,24 @@ const alternativos = indexar
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Unbounded:wght@800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Silkscreen&family=Unbounded:wght@600;800&display=swap"
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Polpad" />
+    <meta property="og:locale" content={idioma === 'pt-br' ? 'pt_BR' : 'en_US'} />
+    {indexar && <meta property="og:url" content={canonica} />}
     <meta property="og:title" content={tituloCompleto} />
     <meta property="og:description" content={descricao} />
     <meta property="og:image" content={new URL(`${base}icon-512.png`, Astro.site).href} />
+    <meta property="og:image:alt" content="Polpad" />
+    <meta name="twitter:card" content="summary" />
   </head>
   <body>
     <a class="pular" href="#conteudo">{t(idioma, 'pular_conteudo')}</a>
-    <Cabecalho idioma={idioma} alternativa={alternativa} />
+    <Cabecalho idioma={idioma} />
     <main id="conteudo" tabindex="-1">
       <slot />
     </main>
-    <Rodape idioma={idioma} />
+    <Rodape idioma={idioma} alternativa={alternativa} />
   </body>
 </html>

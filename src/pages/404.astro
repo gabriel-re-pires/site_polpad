@@ -8,9 +8,18 @@ import { rota, t } from '../lib/i18n';
   <section class="conteiner">
     <p class="codigo" aria-hidden="true">404</p>
     <h1>{t('pt-br', 'nao_encontrado_titulo')}</h1>
-    <p><a href={rota('pt-br', 'inicio')}>Voltar para a página inicial</a></p>
+    <p class="texto">O endereço pode ter mudado ou estar digitado errado. Estes caminhos levam ao que a maioria procura:</p>
+    <div class="botoes">
+      <a class="botao botao-primario" href={rota('pt-br', 'inicio')}>Página inicial</a>
+      <a class="botao botao-secundario" href={rota('pt-br', 'baixar')}>Baixar</a>
+      <a class="botao botao-secundario" href={rota('pt-br', 'docs')}>Docs</a>
+    </div>
     <h2 lang="en">{t('en', 'nao_encontrado_titulo')}</h2>
-    <p lang="en"><a href={rota('en', 'inicio')}>Back to the home page</a></p>
+    <p lang="en" class="texto">
+      <a href={rota('en', 'inicio')}>Home</a>{' · '}<a href={rota('en', 'baixar')}>Download</a>{' · '}<a
+        href={rota('en', 'docs')}>Docs</a
+      >
+    </p>
   </section>
 </Base>
 
@@ -34,7 +43,27 @@ import { rota, t } from '../lib/i18n';
     color: var(--cor-texto-suave);
     margin-top: 2.5rem;
   }
-  a {
+  .texto {
+    color: var(--cor-texto-suave);
+    max-width: 34rem;
+    margin: 0 auto 2rem;
+  }
+  .texto a {
+    color: var(--cor-texto);
     font-weight: 600;
+    text-underline-offset: 3px;
+  }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  h2 {
+    margin-top: 3.5rem !important;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--cor-borda);
+    max-width: 34rem;
+    margin-inline: auto;
   }
 </style>

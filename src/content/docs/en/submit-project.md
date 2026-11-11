@@ -19,7 +19,7 @@ review. You can do it all from the browser, without installing Git.
 | `build` | "here is how I built mine": photos, parts, changes | CC-BY-4.0, CC-BY-SA-4.0, CERN-OHL-S-2.0 |
 | `firmware` | modified firmware | GPL-3.0-or-later |
 
-The Polpad firmware is GPL, so modified firmware must be GPL too and must
+The Polpad One firmware is GPL, so modified firmware must be GPL too and must
 include its source code or a link to it.
 
 ## Step by step

@@ -1,12 +1,12 @@
 ---
-titulo: Assembly
+titulo: Macropad Assembly
 descricao: Parts, ESP32-C3 SuperMini pinout and printing the case.
 chave: montagem
 ordem: 1
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/docs/PINAGEM.md
 ---
 
-The Polpad is an 18-key macropad with a display, built around an ESP32-C3
+The Polpad One is an 18-key macropad with a display, built around an ESP32-C3
 SuperMini. The module and the display sit in the top-left corner of the
 board, where the first two keys would be.
 
@@ -18,10 +18,14 @@ board, where the first two keys would be.
 | Mechanical switches (Kailh hot-swap sockets) | 18 |
 | Diodes (one per key) | 18 |
 | SSD1306 0.96" 128×64 I2C OLED display | 1 |
-| Polpad board (PCB) | 1 |
+| Polpad One board (PCB) | 1 |
 | 3D-printed case (top and bottom) | 1 |
 
-The board files and the schematic will be published soon.
+The board files (Gerbers for fabrication, the EasyEDA Pro project and the
+schematic) are in the
+[`hardware/PCB_polpad`](https://github.com/gabriel-re-pires/polpad/tree/main/hardware/PCB_polpad)
+folder of the repository. Before ordering boards, check the wiring list that
+comes with the files.
 
 ## Pinout
 

@@ -1,110 +1,254 @@
 ---
-import { outroIdioma, rota, t, langHtml, type Idioma } from '../lib/i18n';
+import { rota, t, type Idioma } from '../lib/i18n';
 import { REPO_POLPAD } from '../lib/site';
 
 interface Props {
   idioma: Idioma;
-  alternativa: string;
 }
 
-const { idioma, alternativa } = Astro.props;
+const { idioma } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const atual = Astro.url.pathname;
+// Marca a seção onde a pessoa está (inclui as páginas filhas, como um doc ou um projeto).
+const naSecao = (href: string) => (atual.startsWith(href) ? 'page' : undefined);
+const links = [
+  { href: rota(idioma, 'docs'), texto: t(idioma, 'nav_docs') },
+  { href: rota(idioma, 'comunidade'), texto: t(idioma, 'nav_comunidade') },
+  { href: rota(idioma, 'baixar'), texto: t(idioma, 'nav_download') },
+];
 ---
 
-<header class="cabecalho">
-  <div class="conteiner barra">
+<header class="cabecalho" data-estado="topo">
+  <div class="barra">
+    <!-- No computador, só o nome; no celular, só o polvo em branco. -->
     <a class="marca" href={rota(idioma, 'inicio')} aria-label={t(idioma, 'nav_inicio')}>
       <img src={`${base}polvo.svg`} alt="" width="32" height="32" />
       <span>Polpad</span>
     </a>
-    <nav aria-label={t(idioma, 'nav_principal')}>
-      <a href={rota(idioma, 'docs')}>{t(idioma, 'nav_docs')}</a>
-      <a href={rota(idioma, 'comunidade')}>{t(idioma, 'nav_comunidade')}</a>
-      <a href={rota(idioma, 'baixar')}>{t(idioma, 'nav_baixar')}</a>
+    <nav class="menu" aria-label={t(idioma, 'nav_principal')}>
+      {links.map((l) => <a href={l.href} aria-current={naSecao(l.href)}>{l.texto}</a>)}
     </nav>
-    <div class="acoes">
-      <a
-        class="idioma"
-        href={alternativa}
-        hreflang={langHtml(outroIdioma(idioma))}
-        lang={langHtml(outroIdioma(idioma))}
-        title={t(idioma, 'nav_idioma')}>{t(idioma, 'nav_idioma_curto')}</a
-      >
-      <a class="github" href={REPO_POLPAD} aria-label={t(idioma, 'nav_github')}>
-        <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" fill="currentColor">
-          <path
-            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
-          ></path>
-        </svg>
-      </a>
-    </div>
+    <!-- Só no topo da página: some quando tudo vira uma pílula só. -->
+    <a class="aberto" href={REPO_POLPAD}>OpenSource</a>
   </div>
 </header>
 
-<style>
-  .cabecalho {
-    border-bottom: 1px solid var(--cor-borda);
-    background: color-mix(in srgb, var(--cor-fundo) 85%, transparent);
-    backdrop-filter: blur(8px);
-    position: sticky;
-    top: 0;
-    z-index: 10;
+<script>
+  // A barra muda com a rolagem: no topo da página vai de um lado ao outro; ao rolar,
+  // encolhe até a largura do conteúdo; descendo mais, some; e volta ao rolar para cima.
+  const cabecalho = document.querySelector<HTMLElement>('.cabecalho');
+  if (cabecalho) {
+    /** Até aqui (px rolados) a barra fica larga, no topo. */
+    const TOPO = 8;
+    /** Descer só esconde depois daqui: a primeira rolagem apenas encolhe a barra. */
+    const ESCONDE = 140;
+    /** Movimentos menores que isso (px) não mudam nada: evita piscar com o trackpad. */
+    const FOLGA = 4;
+    let ultimo = Math.max(window.scrollY, 0);
+    let agendado = false;
+
+    const mudar = (estado: string) => {
+      if (cabecalho.dataset.estado !== estado) cabecalho.dataset.estado = estado;
+    };
+
+    const atualizar = () => {
+      agendado = false;
+      const y = Math.max(window.scrollY, 0);
+      if (y < TOPO) {
+        mudar('topo');
+        ultimo = y;
+        return;
+      }
+      const passo = y - ultimo;
+      if (Math.abs(passo) < FOLGA) {
+        if (cabecalho.dataset.estado === 'topo') mudar('compacta');
+        return;
+      }
+      ultimo = y;
+      // Quem está navegando pelo teclado dentro da barra não a perde de vista.
+      if (cabecalho.contains(document.activeElement)) mudar('compacta');
+      else if (passo > 0 && y > ESCONDE) mudar('escondida');
+      else mudar('compacta');
+    };
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (agendado) return;
+        agendado = true;
+        requestAnimationFrame(atualizar);
+      },
+      { passive: true },
+    );
+    cabecalho.addEventListener('focusin', () => {
+      if (cabecalho.dataset.estado === 'escondida') mudar('compacta');
+    });
+    atualizar();
   }
+</script>
+
+<style>
+  /* Três estados (o script troca o data-estado conforme a rolagem):
+     topo: o nome à esquerda, uma pílula com os links no meio e "OpenSource" à direita,
+       soltos sobre a página;
+     compacta: tudo se junta numa pílula só, centralizada, e o "OpenSource" some;
+     escondida: a pílula sobe para fora da tela.
+     Só mudam transform, largura e cores: a página embaixo não se mexe. */
+  .cabecalho {
+    --curva: cubic-bezier(0.22, 1, 0.36, 1);
+    position: sticky;
+    top: 10px;
+    z-index: 20;
+    margin-top: 10px;
+    padding-inline: var(--gutter);
+    view-transition-name: cabecalho;
+    transition: translate 0.45s var(--curva);
+  }
+  .cabecalho[data-estado='escondida'] {
+    translate: 0 calc(-100% - 16px);
+  }
+
+  /* Compacta: uma pílula só, do tamanho do nome e dos links. */
   .barra {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    min-height: 64px;
+    max-width: 32rem;
+    min-height: var(--altura-cabecalho);
+    margin-inline: auto;
+    padding: 0 0.45rem 0 1.4rem;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--cor-fundo-elevado) 88%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: inset 0 0 0 1px var(--cor-borda);
+    transition:
+      max-width 0.6s var(--curva),
+      padding 0.6s var(--curva),
+      background-color 0.4s,
+      box-shadow 0.4s;
+  }
+  /* Topo: a barra vira só o trilho, de ponta a ponta e sem fundo; quem tem fundo é a
+     pílula dos links, no meio. */
+  .cabecalho[data-estado='topo'] .barra {
+    max-width: 100%;
+    padding-inline: clamp(0.5rem, 2vw, 1.5rem);
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  /* O nome e o "OpenSource" ocupam os lados por igual: assim a pílula fica no centro. */
+  .marca,
+  .aberto {
+    flex: 1 1 0;
+    min-width: 0;
+    transition:
+      flex-grow 0.6s var(--curva),
+      opacity 0.3s;
   }
   .marca {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    font-weight: 600;
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
     font-size: 1.15rem;
+    letter-spacing: -0.03em;
     text-decoration: none;
+    white-space: nowrap;
   }
-  nav {
+  /* O polvo só aparece no celular, em branco. */
+  .marca img {
+    display: none;
+    filter: brightness(0) invert(1);
+  }
+
+  .menu {
     display: flex;
-    gap: 1.25rem;
+    gap: 0.15rem;
+    padding: 0.3rem;
+    border-radius: 999px;
+    transition:
+      background-color 0.4s,
+      box-shadow 0.4s;
   }
-  nav a,
-  .idioma {
+  /* No topo os links ficam soltos, sem pílula, como o nome e o "OpenSource": o fundo só
+     aparece quando tudo se junta. Brancos, para ler bem sobre o roxo do topo. */
+  .cabecalho[data-estado='topo'] .menu a:not([aria-current='page']) {
+    color: rgb(255 255 255 / 0.88);
+  }
+  .cabecalho[data-estado='topo'] .menu a:not([aria-current='page']):hover {
+    color: var(--cor-texto);
+    background: rgb(255 255 255 / 0.1);
+  }
+  .menu a {
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
     color: var(--cor-texto-suave);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
+    white-space: nowrap;
+    transition:
+      color 0.15s,
+      background-color 0.15s;
   }
-  nav a:hover,
-  .idioma:hover,
-  .github:hover {
+  .menu a:hover {
     color: var(--cor-texto);
+    background: rgb(255 255 255 / 0.06);
   }
-  .acoes {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  .menu a[aria-current='page'] {
+    color: var(--cor-tinta);
+    background: var(--cor-lima);
   }
-  .idioma {
-    border: 1px solid var(--cor-borda);
-    border-radius: 8px;
-    padding: 0.2rem 0.55rem;
+
+  /* "OpenSource": texto discreto à direita, só no topo. Na pílula compacta ele encolhe
+     até sumir, e o nome empurra os links para a ponta. */
+  /* Mesma fonte, peso e tamanho do nome "Polpad", do outro lado da barra. */
+  .aberto {
+    overflow: hidden;
+    color: var(--cor-texto);
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.03em;
+    text-align: right;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      flex-grow 0.6s var(--curva),
+      opacity 0.3s,
+      color 0.15s;
   }
-  .github {
-    color: var(--cor-texto-suave);
-    display: flex;
+  .aberto:hover {
+    color: var(--cor-lima);
   }
+  .cabecalho:not([data-estado='topo']) .aberto {
+    flex-grow: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* No celular: o polvo no lugar do nome, e a pílula compacta ocupa a largura toda. */
   @media (max-width: 640px) {
     .barra {
-      flex-wrap: wrap;
-      gap: 0.25rem 1rem;
-      padding-block: 0.6rem;
+      max-width: 100%;
+      padding-left: 0.85rem;
     }
-    nav {
-      order: 3;
-      width: 100%;
-      gap: 1.1rem;
+    .marca span {
+      display: none;
+    }
+    .marca img {
+      display: block;
+    }
+    .menu a {
+      padding-inline: 0.7rem;
+    }
+  }
+  /* Sem espaço para os três no topo: o "OpenSource" fica só nas telas maiores. */
+  @media (max-width: 480px) {
+    .aberto {
+      display: none;
     }
   }
 </style>
