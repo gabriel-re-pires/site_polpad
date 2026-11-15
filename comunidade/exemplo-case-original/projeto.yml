@@ -1,18 +1,17 @@
-titulo: Case original do Polpad One
+titulo: Case original do Polpad
 tipo: case
 autor:
   nome: Gabriel R. Pires
   github: gabriel-re-pires
 descricao: |
-  O case oficial do Polpad One, em duas peças (tampa e base). Os arquivos ficam no
-  repositório do Polpad: STL para qualquer fatiador e G-code pronto para a
+  O case oficial do Polpad, em duas peças (tampa e base). Os arquivos ficam no
+  repositório do app: STL para qualquer fatiador e G-code pronto para a
   Ender 3 V3 SE.
 
   Este projeto também serve de modelo para quem for enviar o seu.
 licenca: CERN-OHL-S-2.0
-oficial: true
 data: 2026-11-07
-capa: capa.jpg
+capa: capa.png
 links:
   - titulo: Tampa (case_top.stl)
     url: https://github.com/gabriel-re-pires/polpad/blob/main/hardware/case/case_top.stl
