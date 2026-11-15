@@ -29,6 +29,8 @@ const comunidade = defineCollection({
           .array(z.object({ titulo: z.string().min(1).max(60), url: z.url({ protocol: /^https?$/ }) }))
           .default([]),
         versao_firmware: z.string().optional(),
+        // Projeto da própria equipe do Polpad: as páginas mostram só a data, sem nome de autor.
+        oficial: z.boolean().default(false),
       })
       .superRefine((projeto, ctx) => {
         if (!licencaPermitida(projeto.tipo, projeto.licenca)) {

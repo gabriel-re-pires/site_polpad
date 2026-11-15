@@ -44,7 +44,7 @@ describe('urlDoc', () => {
 
 describe('corDoGuia', () => {
   it('dá a cada guia uma cor, na ordem do índice (o Firmware é claro como o Instalar), e recomeça depois da quarta', () => {
-    expect([0, 1, 2, 3].map(corDoGuia)).toEqual(['roxo', 'claro', 'claro', 'lima']);
+    expect([0, 1, 2, 3].map(corDoGuia)).toEqual(['roxo', 'claro', 'claro', 'claro']);
     expect(corDoGuia(4)).toBe('roxo');
   });
 });

@@ -35,10 +35,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { geometriaDaKeycap, texturaDoDisplay } from './pecas3d';
 
 export const CORES = {
-  roxo: { caixa: '#7a2ef0', tecla: '#1c1726' },
   preto: { caixa: '#1b1624', tecla: '#2f2840' },
-  branco: { caixa: '#edeaf3', tecla: '#1c1726' },
-  limao: { caixa: '#d8f343', tecla: '#1c1726' },
+  roxo: { caixa: '#7a2ef0', tecla: '#1c1726' },
+  laranja: { caixa: '#ff7a1a', tecla: '#1c1726' },
 } as const;
 export type NomeDaCor = keyof typeof CORES;
 
@@ -318,7 +317,14 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
   const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let alvo = 0;
   let aberto = 0;
-  let giroY = -0.62;
+  /** Para onde o modelo está virado no começo (rad). */
+  const GIRO_INICIAL = -0.62;
+  /** No celular, quanto o modelo gira (rad) do fechado até o todo aberto, junto com a rolagem. */
+  const GIRO_NA_ROLAGEM = 0.9;
+  /** No celular, o modelo não se arrasta: a única interação é trocar a cor. Ele só se mexe
+   * com a rolagem (as peças sobem e ele gira de leve). */
+  const celular = window.matchMedia('(max-width: 760px)');
+  let giroY = GIRO_INICIAL;
   let inclinacaoExtra = 0;
   /** Velocidade do giro (rad/s) depois de soltar: o modelo continua girando e para devagar. */
   let embaloY = 0;
@@ -339,10 +345,16 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
   // A mesma largura em que o CSS põe as legendas numa coluna à direita.
   const colunaDeLegendas = window.matchMedia('(min-width: 1100px)');
   colunaDeLegendas.addEventListener('change', () => enquadrar());
+  /** Quanto o modelo pode ir para a esquerda (px) para abrir espaço às legendas. */
+  let desvioMaximo = 0;
+  let largura = 1;
+  let altura = 1;
+  /** O modelo começa no meio e vai para o lado enquanto as keycaps sobem. */
+  const desvioAtual = () => desvioMaximo * suave(MathUtils.clamp(aberto / REVELAR.keycaps, 0, 1));
 
   function enquadrar() {
-    const largura = palco.clientWidth;
-    const altura = palco.clientHeight;
+    largura = palco.clientWidth;
+    altura = palco.clientHeight;
     if (largura === 0 || altura === 0) return;
     // Com zoom no CSS, um px do palco pode ocupar mais ou menos pixels da tela: o
     // canvas acompanha o zoom, para desenhar só os pixels que aparecem.
@@ -352,10 +364,8 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
     desenhista.setPixelRatio(Math.min(window.devicePixelRatio * zoom, 2));
     desenhista.setSize(largura, altura, false);
     camera.aspect = largura / altura;
-    // Na tela larga as legendas ocupam a direita: o modelo vai um pouco para a esquerda.
-    const desvio = colunaDeLegendas.matches && conteudo.camadas ? Math.min(largura * 0.12, 170) : 0;
-    camera.setViewOffset(largura, altura, desvio, 0, largura, altura);
-    camera.updateProjectionMatrix();
+    // Na tela larga as legendas ocupam a direita: aberto, o modelo vai para a esquerda.
+    desvioMaximo = colunaDeLegendas.matches && conteudo.camadas ? Math.min(largura * 0.14, 200) : 0;
     pendente = true;
   }
 
@@ -390,7 +400,11 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
       pendente = true;
     }
     const parado = agora - ultimoToque > 2500 && !arrastando;
-    if (!semMovimento && parado) {
+    if (celular.matches) {
+      // No celular o giro vem só da rolagem: fechado olha de frente, aberto já virou um pouco.
+      inclinacaoExtra = 0;
+      embaloY = embaloX = 0;
+    } else if (!semMovimento && parado) {
       giroY += dt * 0.12;
       pendente = true;
     }
@@ -402,8 +416,11 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
     if (!pendente) return;
     pendente = false;
 
+    if (celular.matches) giroY = GIRO_INICIAL + (semMovimento ? 0 : aberto * GIRO_NA_ROLAGEM);
     giro.rotation.y = giroY;
     conteudo.abrir(aberto);
+    camera.setViewOffset(largura, altura, desvioAtual(), 0, largura, altura);
+    camera.updateProjectionMatrix();
 
     // A câmera mira o meio da pilha e recua só o bastante para caber a largura e a
     // altura do modelo, cada uma no seu eixo da tela: assim ele ocupa o palco.
@@ -416,7 +433,9 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
     // Visto de cima, a altura na tela soma a pilha e a profundidade do case.
     const alturaNaTela = volume.meiaAltura * Math.cos(elevacao) + volume.raio * Math.abs(Math.sin(elevacao));
     // O lado mais perto da câmera aparece maior: a folga cobre essa perspectiva.
-    const distancia = Math.max(volume.raio / tanH, alturaNaTela / tanV) * 1.06 + volume.raio * 0.55;
+    // No celular o giro é pequeno e conhecido: dá para chegar mais perto e o modelo fica maior.
+    const folga = celular.matches ? 0.3 : 0.55;
+    const distancia = Math.max(volume.raio / tanH, alturaNaTela / tanV) * 1.06 + volume.raio * folga;
     camera.position.set(
       alvoDaCamera.x,
       alvoDaCamera.y + Math.sin(elevacao) * distancia,
@@ -439,6 +458,7 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
   let ultimoY = 0;
   let ultimoTempo = 0;
   tela.addEventListener('pointerdown', (evento) => {
+    if (celular.matches) return;
     arrastando = true;
     embaloY = embaloX = 0;
     ultimoX = evento.clientX;
@@ -509,7 +529,7 @@ export async function iniciarModelo(palco: HTMLElement): Promise<Modelo> {
       pendente = true;
     },
   };
-  modelo.cor('roxo');
+  modelo.cor('preto');
   legendar();
   enquadrar();
   return modelo;

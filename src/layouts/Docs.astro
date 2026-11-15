@@ -1,7 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Base from './Base.astro';
-import { rota, t, type Idioma } from '../lib/i18n';
+import { t, type Idioma } from '../lib/i18n';
 import { docsDoIdioma, urlDoc } from '../lib/docs';
 
 interface Props {
@@ -21,15 +21,11 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
 <Base idioma={idioma} titulo={titulo} descricao={descricao} alternativa={alternativa} traduzida={traduzida}>
   <div class="conteiner docs">
     <nav aria-label={t(idioma, 'docs_navegacao')}>
-      <a class="todos" href={rota(idioma, 'docs')}>{t(idioma, 'docs_titulo')}</a>
       <ol>
         {
-          lista.map((doc, i) => (
+          lista.map((doc) => (
             <li>
               <a href={urlDoc(idioma, doc)} aria-current={doc.id === atual?.id ? 'page' : undefined}>
-                <span class="visor" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
                 {doc.data.titulo}
               </a>
             </li>
@@ -51,7 +47,7 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
     gap: 2rem;
     max-width: none;
     padding-inline: calc(var(--gutter) + clamp(0.5rem, 2vw, 1.5rem));
-    padding-block: clamp(2rem, 5vw, 3.5rem) 0;
+    padding-block: clamp(2.5rem, 9vw, 7rem) 0;
   }
   @media (min-width: 768px) {
     .docs {
@@ -64,20 +60,7 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
       align-self: start;
     }
   }
-  /* Menu dos guias: o número de cada um num "display", como no índice. */
-  .todos {
-    display: inline-block;
-    margin: 0 0 0.85rem 0.15rem;
-    font-family: var(--fonte-titulo);
-    font-weight: 800;
-    font-size: 1.1rem;
-    letter-spacing: -0.03em;
-    color: var(--cor-texto);
-    text-decoration: none;
-  }
-  .todos:hover {
-    color: var(--cor-lima);
-  }
+  /* Menu dos guias. */
   nav ol {
     list-style: none;
     margin: 0;
@@ -90,45 +73,73 @@ const lista = docsDoIdioma(await getCollection('docs'), idioma);
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    padding: 0.4rem 0.75rem 0.4rem 0.45rem;
-    border-radius: 999px;
+    padding: 0.4rem 0.75rem 0.4rem 0.7rem;
+    border-left: 6px solid transparent;
     color: var(--cor-texto-suave);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
     transition:
-      background-color 0.15s,
+      border-color 0.15s,
       color 0.15s;
   }
   nav li a:hover {
     color: var(--cor-texto);
-    background: var(--cor-fundo-elevado);
   }
+  /* A página atual é marcada só por um traço ao lado, sem bloco. */
   nav li a[aria-current='page'] {
-    background: var(--cor-lima);
-    color: var(--cor-tinta);
+    border-left-color: var(--cor-roxo);
+    color: var(--cor-texto);
   }
-  .visor {
-    flex-shrink: 0;
-    padding: 0.3rem 0.4rem 0.22rem;
-    border-radius: 6px;
-    background: #000;
-    box-shadow: 0 0 0 1px var(--cor-borda-forte);
-    color: #fff;
-    font-family: var(--fonte-pixel);
-    font-size: 0.72rem;
-    font-weight: 400;
-    line-height: 1;
-  }
+  /* No celular, os guias numa linha só, que rola de lado; a página atual é marcada por um
+     traço roxo embaixo, em vez do traço do lado. */
   @media (max-width: 767px) {
+    /* A linha que rola não pode alargar a coluna (e a página) além da tela. A margem do
+       lado é a mesma das outras páginas, para os textos alinharem. */
+    .docs {
+      grid-template-columns: minmax(0, 1fr);
+      padding-inline: var(--gutter);
+    }
+    /* Tabelas mais compactas: letra e espaços menores. */
+    article :global(table) {
+      font-size: 0.8rem;
+    }
+    article :global(th),
+    article :global(td) {
+      padding: 0.4rem 0.45rem;
+    }
+    article :global(th) {
+      font-size: 0.78rem;
+    }
+    article :global(pre) {
+      padding: 0.85rem 1rem;
+      font-size: 0.82rem;
+      border-radius: 12px;
+    }
+    nav {
+      min-width: 0;
+    }
     nav ol {
       flex-direction: row;
-      flex-wrap: wrap;
-      gap: 0.4rem;
+      flex-wrap: nowrap;
+      gap: 1.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    nav ol::-webkit-scrollbar {
+      display: none;
     }
     nav li a {
-      box-shadow: inset 0 0 0 1px var(--cor-borda);
+      padding: 0.6rem 0 0.7rem;
+      border-left: 0;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
     }
+    nav li a[aria-current='page'] {
+      border-bottom-color: var(--cor-roxo);
+    }
+
   }
   article {
     min-width: 0;

@@ -6,8 +6,8 @@ ordem: 2
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/tools/LEIA-ME-linux.txt
 ---
 
-Polpad is the app that sets up the keys and the display of the Polpad One
-and flashes its firmware. It runs on Windows and Linux. The app itself is in
+Polpad is the software that sets up the keys and the display of the Polpad One
+and flashes its firmware. It runs on Windows and Linux. The software itself is in
 Portuguese for now.
 
 ## Windows
@@ -18,7 +18,7 @@ Portuguese for now.
    with Windows: it opens minimized in the tray.
 3. Plug the Polpad One in over USB and open Polpad.
 
-When a new version comes out, the app tells you and updates itself. The
+When a new version comes out, the software tells you and updates itself. The
 option is in the menu (☰), under **Versão e atualizações** (version and
 updates).
 
@@ -27,7 +27,7 @@ updates).
 1. Download `Polpad-Linux-Instalador.tar.gz` from the [Download](../../download/)
    page and extract it.
 2. Double-click **Polpad** or run `./Polpad` in a terminal.
-3. The first time, the app asks whether to add itself to the applications
+3. The first time, the software asks whether to add itself to the applications
    menu. Choose **Instalar** (install): it goes into your home folder
    (`~/.local`) and needs no password. After that, the extracted folder can
    be deleted.

@@ -15,7 +15,7 @@ da revisão. Dá para fazer tudo pelo navegador, sem instalar o Git.
 | Tipo | Exemplos | Licenças aceitas |
 |---|---|---|
 | `case` | variação do case, keycaps, suporte | CC-BY-4.0, CC-BY-SA-4.0, CERN-OHL-S-2.0 |
-| `perfil` | perfil exportado do app (OBS, Photoshop, jogos…) | CC0-1.0, CC-BY-4.0 |
+| `perfil` | perfil exportado do software (OBS, Photoshop, jogos…) | CC0-1.0, CC-BY-4.0 |
 | `build` | "montei o meu assim": fotos, peças, mudanças | CC-BY-4.0, CC-BY-SA-4.0, CERN-OHL-S-2.0 |
 | `firmware` | firmware modificado | GPL-3.0-or-later |
 

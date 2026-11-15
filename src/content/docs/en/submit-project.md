@@ -15,7 +15,7 @@ review. You can do it all from the browser, without installing Git.
 | Type | Examples | Accepted licenses |
 |---|---|---|
 | `case` | case variant, keycaps, stand | CC-BY-4.0, CC-BY-SA-4.0, CERN-OHL-S-2.0 |
-| `perfil` (profile) | profile exported from the app (OBS, Photoshop, games…) | CC0-1.0, CC-BY-4.0 |
+| `perfil` (profile) | profile exported from the software (OBS, Photoshop, games…) | CC0-1.0, CC-BY-4.0 |
 | `build` | "here is how I built mine": photos, parts, changes | CC-BY-4.0, CC-BY-SA-4.0, CERN-OHL-S-2.0 |
 | `firmware` | modified firmware | GPL-3.0-or-later |
 
