@@ -1,0 +1,40 @@
+---
+// O projeto Polpad em dois parágrafos, logo depois do topo: de onde veio a ideia e a
+// premissa de ser tudo aberto (hardware e software).
+import { t, type Idioma } from '../lib/i18n';
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+---
+
+<section class="conteiner sobre" aria-labelledby="sobre-titulo">
+  <h2 id="sobre-titulo">{t(idioma, 'sobre_titulo')}</h2>
+  <p>{t(idioma, 'sobre_a')}</p>
+  <p>{t(idioma, 'sobre_b')}</p>
+</section>
+
+<style>
+  .sobre {
+    padding-block: var(--secao) 0;
+  }
+  .sobre h2 {
+    margin: 0 0 clamp(1.75rem, 3.5vw, 2.5rem);
+    font-size: clamp(2.1rem, 5.6vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+  }
+  .sobre p {
+    margin: 0 0 1.5rem;
+    color: var(--cor-texto-corpo);
+    font-size: clamp(1.02rem, 1.8vw, 1.2rem);
+    line-height: 1.75;
+    text-align: var(--alinhar-texto);
+    hyphens: auto;
+  }
+  .sobre p:last-child {
+    margin-bottom: 0;
+  }
+</style>

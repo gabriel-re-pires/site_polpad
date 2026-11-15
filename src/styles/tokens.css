@@ -19,6 +19,8 @@
   --cor-lima-forte: #e6ff5c;
   --cor-tinta: #0e0b14;
   --cor-papel: #edeaf3;
+  /* Um tom entre o papel e o branco puro: um pouco mais claro que o papel. */
+  --cor-papel-claro: #f6f4fa;
   --cor-texto: #ffffff;
   --cor-texto-corpo: #edeaf3;
   --cor-texto-suave: #b4aec2;
@@ -41,8 +43,22 @@
   --raio-painel: clamp(28px, 3.6vw, 44px);
   --vao: 12px;
   --gutter: clamp(16px, 4vw, 32px);
-  --secao: clamp(4.5rem, 11vw, 9rem);
+  --secao: clamp(6rem, 14vw, 11.5rem);
   --altura-cabecalho: 60px;
+  /* A abertura ocupa a altura da janela (o zoom de 80% do site é compensado). */
+  --altura-hero: calc(100svh / var(--zoom-site));
   /* O site inteiro aparece em 80% (global.css); só o palco do 3D volta a 100%. */
   --zoom-site: 0.8;
+  /* Os parágrafos longos são justificados, com hifenização para não abrir buracos. */
+  --alinhar-texto: justify;
+}
+
+/* No celular, o site fica em 100%: com 80%, o texto corrido caía para uns 13 px e os
+   links do rodapé para menos de 12 px, pequenos demais para ler e tocar. */
+@media (max-width: 760px) {
+  :root {
+    --zoom-site: 1;
+    /* Menos espaço entre as seções: na tela pequena, 6 rem de vazio pesa demais. */
+    --secao: 4.5rem;
+  }
 }

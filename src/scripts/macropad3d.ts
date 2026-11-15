@@ -411,6 +411,29 @@ export async function iniciarMacropad(tela: HTMLCanvasElement): Promise<void> {
     }
   });
 
+  // Sem mouse (celular) não há passar por cima: as teclas se apertam sozinhas, uma de cada vez,
+  // para o desenho não ficar parado. Pausa enquanto o dedo está nele e por um tempo depois,
+  // e também quando o desenho sai da tela ou a aba fica escondida.
+  if (window.matchMedia('(hover: none)').matches && !semMovimento) {
+    let visivel = true;
+    let pausadoAte = 0;
+    let ultima: Tecla | undefined;
+    new IntersectionObserver(([entrada]) => {
+      visivel = entrada.isIntersecting;
+    }).observe(tela);
+    tela.addEventListener('pointerdown', () => {
+      pausadoAte = performance.now() + 3000;
+    });
+    window.setInterval(() => {
+      if (!visivel || document.hidden || apertadas.size > 0 || performance.now() < pausadoAte) return;
+      let escolhida = teclas[Math.floor(Math.random() * teclas.length)];
+      if (escolhida === ultima) escolhida = teclas[(teclas.indexOf(escolhida) + 5) % teclas.length];
+      ultima = escolhida;
+      apertar(escolhida);
+      window.setTimeout(() => soltar(escolhida), 160);
+    }, 650);
+  }
+
   new ResizeObserver(ajustarTamanho).observe(tela);
   ajustarTamanho();
 }

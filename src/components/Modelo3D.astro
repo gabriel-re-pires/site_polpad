@@ -11,7 +11,7 @@ interface Props {
 const { idioma } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const camadas = ['keycaps', 'switches', 'tampa', 'placa', 'base'] as const;
-const cores = ['roxo', 'preto', 'branco', 'limao'] as const;
+const cores = ['preto', 'roxo', 'laranja'] as const;
 const texto = (chave: string) => t(idioma, chave as ChaveTexto);
 ---
 
@@ -32,7 +32,6 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
           camadas.map((camada) => (
             <li data-camada={camada}>
               <strong>{texto(`camada_${camada}`)}</strong>
-              <span>{texto(`camada_${camada}_texto`)}</span>
             </li>
           ))
         }
@@ -46,7 +45,7 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
 
       <div class="controles">
         <fieldset class="cores">
-          <legend>{t(idioma, 'modelo_cor')}</legend>
+          <legend class="visualmente-oculto">{t(idioma, 'modelo_cor')}</legend>
           {
             cores.map((cor, i) => (
               <label class={cor} title={texto(`modelo_cor_${cor}`)}>
@@ -60,7 +59,6 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
           <span class="abrir">{t(idioma, 'modelo_abrir')}</span>
           <span class="fechar">{t(idioma, 'modelo_fechar')}</span>
         </button>
-        <p class="dica">{t(idioma, 'modelo_dica')}</p>
       </div>
     </div>
   </div>
@@ -187,15 +185,15 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
 <style>
   .modelo {
     /* Um pouco menos de espaço em cima que as outras seções: fica mais perto do topo roxo. */
-    padding-block: calc(var(--secao) * 0.65) 0;
+    padding-block: var(--secao) 0;
   }
   /* O texto vai de um lado ao outro, justificado, e fica perto do bloco do 3D. */
   .secao-cabeca {
     max-width: none;
-    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+    margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
   }
   .secao-cabeca p {
-    text-align: justify;
+    text-align: var(--alinhar-texto);
     hyphens: auto;
   }
   /* O 3D é a única parte fora do zoom de 80% do site: no tamanho cheio, sai da
@@ -217,7 +215,7 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
     position: sticky;
     top: var(--topo);
     height: calc((100svh - var(--topo) - 12px) * 0.94);
-    border-radius: var(--raio-grande);
+    border-radius: 20px;
     background: var(--cor-papel);
     color: var(--cor-tinta);
     overflow: hidden;
@@ -240,7 +238,7 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
   canvas:focus-visible {
     outline: 2px solid var(--cor-roxo);
     outline-offset: -6px;
-    border-radius: var(--raio-grande);
+    border-radius: 20px;
   }
   [data-estado='pronto'] canvas {
     opacity: 1;
@@ -287,17 +285,21 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
   .aberto .legendas {
     opacity: 1;
   }
+  /* Cada título só aparece quando a camada dele já se separou, subindo de leve. */
   .legendas li {
     padding-left: 1rem;
     border-left: 2px solid rgb(14 11 20 / 0.14);
-    opacity: 0.36;
+    opacity: 0;
+    translate: 0 0.6rem;
     line-height: 1.3;
     transition:
-      opacity 0.35s,
+      opacity 0.4s,
+      translate 0.4s,
       border-color 0.35s;
   }
   .legendas li.revelada {
     opacity: 1;
+    translate: none;
   }
   .legendas li.atual {
     border-left-color: var(--cor-roxo);
@@ -305,13 +307,9 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
   .legendas strong {
     display: block;
     font-family: var(--fonte-titulo);
-    font-size: 0.95rem;
+    font-size: 1.15rem;
     font-weight: 600;
     letter-spacing: -0.02em;
-  }
-  .legendas span {
-    font-size: 0.88rem;
-    color: rgb(14 11 20 / 0.72);
   }
 
   .controles {
@@ -322,6 +320,7 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.75rem 1.25rem;
     pointer-events: none;
   }
@@ -340,17 +339,10 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
     align-items: center;
     gap: 0.5rem;
     margin: 0;
-    padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+    padding: 0.4rem 0.5rem;
     border: 0;
     border-radius: 999px;
     background: rgb(14 11 20 / 0.07);
-  }
-  .cores legend {
-    float: left;
-    padding: 0;
-    margin-right: 0.35rem;
-    font-size: 0.85rem;
-    font-weight: 600;
   }
   .cores label {
     position: relative;
@@ -381,16 +373,8 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
   .cores .preto {
     background: #1b1624;
   }
-  .cores .branco {
-    background: #fff;
-  }
-  .cores .limao {
-    background: var(--cor-lima);
-  }
-  .dica {
-    margin: 0 0 0 auto;
-    font-size: 0.85rem;
-    color: rgb(14 11 20 / 0.65);
+  .cores .laranja {
+    background: #ff7a1a;
   }
   .alternar {
     display: none;
@@ -426,12 +410,21 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
     }
   }
 
+  /* No celular, só o modelo e as cores: sem os nomes das camadas e sem arrastar o modelo
+     (o dedo rola a página, e a rolagem é que abre e gira o modelo). */
+  @media (max-width: 760px) {
+    .legendas {
+      display: none;
+    }
+    canvas {
+      pointer-events: none;
+      cursor: default;
+    }
+  }
+
   @media (max-width: 720px) {
     .legendas strong {
-      font-size: 0.85rem;
-    }
-    .legendas span {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
     }
     /* O cabeçalho tem duas linhas no celular, e o modelo cabe num palco mais baixo. */
     /* No celular a barra tem uma linha só, como no computador: o "--topo" é o mesmo. */
@@ -440,9 +433,6 @@ const texto = (chave: string) => t(idioma, chave as ChaveTexto);
     }
     .palco {
       height: min(calc(100svh - var(--topo) - 12px), 600px);
-    }
-    .dica {
-      display: none;
     }
   }
 

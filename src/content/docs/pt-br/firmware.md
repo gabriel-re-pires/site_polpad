@@ -1,13 +1,13 @@
 ---
 titulo: Firmware
-descricao: Gravar e atualizar o firmware pelo app, e usar o Polpad One sem o app via Bluetooth.
+descricao: Gravar e atualizar o firmware pelo software, e como o Polpad One se conecta ao computador.
 chave: firmware
 ordem: 3
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/firmware/README.md
 ---
 
 O firmware é o programa que roda dentro do Polpad One. Você não precisa de
-Arduino IDE nem de outras ferramentas: o app Polpad grava o firmware pelo
+Arduino IDE nem de outras ferramentas: o software Polpad grava o firmware pelo
 cabo USB.
 
 ## Gravar ou atualizar
@@ -20,29 +20,23 @@ cabo USB.
    no meio:** a gravação interrompida deixa o Polpad One sem firmware até uma
    nova gravação.
 
-O app mostra a versão que está no aparelho e avisa quando o release é mais
+O software mostra a versão que está no aparelho e avisa quando o release é mais
 antigo que ela. Ele também avisa quando sai um firmware novo.
 
 A opção **Arquivo .bin no computador** serve para gravar um firmware
 baixado à mão, como o `.bin` da página [Download](../../download/) ou um
 firmware da comunidade.
 
-## Com e sem o app
+## Como o Polpad One se conecta
 
-- **Com o app aberto** (mesmo minimizado na bandeja): as teclas vão pelo
-  USB e o app executa as ações do perfil. O display mostra o que o app
-  manda.
-- **Sem o app**, ou em outro computador, tablet ou celular: o Polpad One vira
-  um **teclado Bluetooth** com atalhos fixos. A troca entre os dois modos é
-  automática.
+O Polpad One funciona **conectado pelo cabo USB a um computador com o software
+Polpad aberto** (mesmo minimizado na bandeja). As teclas vão pelo USB, o software
+executa as ações do perfil e o display mostra o que o software manda.
 
-### Parear pelo Bluetooth
+### Bluetooth: em desenvolvimento
 
-1. Ligue o Polpad One. A tela mostra o polvo girando e "Aguardando conexão".
-2. No Windows, abra **Configurações → Bluetooth e dispositivos → Adicionar
-   dispositivo → Bluetooth**. No Android ou no macOS, abra a tela de
-   Bluetooth.
-3. Escolha **Polpad**. Não precisa de PIN.
-
-Se o pareamento der problema, remova o dispositivo no sistema e pareie de
-novo.
+O ESP32-C3 tem Bluetooth, e um modo sem fio já foi iniciado no firmware: sem o
+software, o Polpad One viraria um teclado Bluetooth com atalhos fixos. Esse modo
+**ainda não foi testado nem está pronto para uso**, então por enquanto use o
+Polpad One pelo cabo. Quando ele estiver pronto, este guia vai explicar como
+parear.

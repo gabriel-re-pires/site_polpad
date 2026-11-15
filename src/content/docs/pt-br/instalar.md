@@ -6,7 +6,7 @@ ordem: 2
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/tools/LEIA-ME-linux.txt
 ---
 
-O Polpad é o app que configura as teclas e o display do Polpad One e
+O Polpad é o software que configura as teclas e o display do Polpad One e
 grava o firmware dele. Ele roda no Windows e no Linux.
 
 ## Windows
@@ -16,7 +16,7 @@ grava o firmware dele. Ele roda no Windows e no Linux.
    iniciar o Polpad junto com o Windows: ele abre minimizado na bandeja.
 3. Conecte o Polpad One pelo cabo USB e abra o Polpad.
 
-Quando sair uma versão nova, o próprio app avisa e se atualiza. A opção
+Quando sair uma versão nova, o próprio software avisa e se atualiza. A opção
 fica no menu (☰), em **Versão e atualizações**.
 
 ## Linux
@@ -24,7 +24,7 @@ fica no menu (☰), em **Versão e atualizações**.
 1. Baixe o `Polpad-Linux-Instalador.tar.gz` na página [Download](../../download/)
    e extraia.
 2. Dê dois cliques em **Polpad** ou rode `./Polpad` no terminal.
-3. Na primeira vez, o app pergunta se você quer colocá-lo no menu de
+3. Na primeira vez, o software pergunta se você quer colocá-lo no menu de
    aplicativos. Escolha **Instalar**: ele vai para a sua pasta pessoal
    (`~/.local`) e não pede senha. Depois disso, a pasta extraída pode ser
    apagada.

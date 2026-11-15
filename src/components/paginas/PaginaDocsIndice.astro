@@ -2,7 +2,7 @@
 // Índice dos docs: os guias são uma sequência (montar, instalar, firmware, enviar),
 // então aparecem como um mosaico numerado, cada um com as
 // seções que tem dentro, com link direto para elas.
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { outroIdioma, rota, t, type Idioma } from '../../lib/i18n';
 import { corDoGuia, docsDoIdioma, urlDoc } from '../../lib/docs';
@@ -14,18 +14,12 @@ interface Props {
 
 const { idioma } = Astro.props;
 const lista = docsDoIdioma(await getCollection('docs'), idioma);
-const guias = await Promise.all(
-  lista.map(async (doc, i) => {
-    const { headings } = await render(doc);
-    return {
-      doc,
-      numero: String(i + 1).padStart(2, '0'),
-      // Uma cor por guia (roxo, claro, claro e limão), a mesma do topo da página dele.
-      cor: corDoGuia(i),
-      secoes: headings.filter((h) => h.depth === 2),
-    };
-  }),
-);
+const guias = lista.map((doc, i) => ({
+  doc,
+  numero: String(i + 1).padStart(2, '0'),
+  // Uma cor por guia (roxo, claro, claro e claro), a mesma do topo da página dele.
+  cor: corDoGuia(i),
+}));
 ---
 
 <Base
@@ -52,21 +46,9 @@ const guias = await Promise.all(
                 {g.doc.data.titulo}
               </a>
             </h2>
-            {g.secoes.length > 0 && (
-              <div class="secoes">
-                <p class="rotulo">{t(idioma, 'docs_neste_guia')}</p>
-                <ul>
-                  {g.secoes.map((s) => (
-                    <li>
-                      <a href={`${urlDoc(idioma, g.doc)}#${s.slug}`}>{s.text}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <span class="abrir" aria-hidden="true">
+            <a class="abrir" href={urlDoc(idioma, g.doc)} tabindex="-1" aria-hidden="true">
               {t(idioma, 'docs_abrir')}
-            </span>
+            </a>
           </li>
         ))
       }
@@ -77,10 +59,7 @@ const guias = await Promise.all(
         <h2>{t(idioma, 'docs_ajuda_titulo')}</h2>
         <p>{t(idioma, 'docs_ajuda_texto')}</p>
       </div>
-      <div class="botoes">
-        <a class="botao botao-primario" href={`${REPO_POLPAD}/issues/new`}>{t(idioma, 'docs_ajuda_issue')}</a>
-        <a class="botao botao-secundario" href={rota(idioma, 'comunidade')}>{t(idioma, 'docs_ajuda_comunidade')}</a>
-      </div>
+      <a class="botao issue" href={`${REPO_POLPAD}/issues/new`}>{t(idioma, 'docs_ajuda_issue')}</a>
     </aside>
   </div>
 </Base>
@@ -96,7 +75,7 @@ const guias = await Promise.all(
   }
   h1 {
     margin: 0;
-    font-size: clamp(3.5rem, 13vw, 9rem);
+    font-size: clamp(2.4rem, 11vw, 9rem);
     line-height: 0.85;
     letter-spacing: -0.05em;
   }
@@ -119,8 +98,8 @@ const guias = await Promise.all(
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 19rem;
-    padding: clamp(1.4rem, 3vw, 2rem) clamp(1.4rem, 3vw, 2rem) 2.75rem;
+    min-height: 12.5rem;
+    padding: clamp(1.4rem, 3vw, 2rem) clamp(1.4rem, 3vw, 2rem) 5rem;
     border-radius: var(--raio-grande);
     transition: translate 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -128,8 +107,7 @@ const guias = await Promise.all(
   .guia:focus-within {
     translate: 0 -4px;
   }
-  /* Número, título e descrição alinhados no alto (os títulos de uma mesma linha ficam
-     na mesma altura); os atalhos de seção descem para o pé do cartão. */
+  /* O número do guia, no alto do cartão, em cima do título. */
   .cabeca {
     display: flex;
     align-items: center;
@@ -187,59 +165,27 @@ const guias = await Promise.all(
     outline: 3px solid var(--cor-lima);
     outline-offset: 4px;
   }
-  .secoes {
-    position: relative;
-    z-index: 1;
-    margin-top: auto;
-  }
-  .rotulo {
-    margin: 0 0 0.45rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    opacity: 0.9;
-  }
-  .secoes ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .secoes a {
-    display: inline-block;
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.14);
-    color: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 0.15s;
-  }
-  .secoes a:hover {
-    background: rgb(255 255 255 / 0.26);
-  }
-  /* "Abrir o guia": uma pílula preta que passa da borda de baixo do cartão. */
+  /* "Abrir o guia": um botão verde dentro do cartão, no canto direito de baixo. É um link
+     de verdade (fica por cima do link que cobre o cartão) e não muda de cor com o cartão. */
   .abrir {
     position: absolute;
-    left: clamp(1.4rem, 3vw, 2rem);
-    bottom: 0;
-    translate: 0 50%;
+    z-index: 1;
+    right: clamp(1.4rem, 3vw, 2rem);
+    bottom: clamp(1.4rem, 3vw, 2rem);
     padding: 0.6rem 1.25rem;
-    border-radius: 999px;
-    background: var(--cor-tinta);
-    color: var(--cor-texto);
-    box-shadow: 0 0 0 5px var(--cor-fundo);
-    font-weight: 600;
-    transition:
-      background-color 0.15s,
-      color 0.15s;
-    pointer-events: none;
-  }
-  .guia:hover .abrir {
+    border-radius: 15px;
     background: var(--cor-lima);
     color: var(--cor-tinta);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      transform 0.15s;
+  }
+  .abrir:hover {
+    background: var(--cor-lima-forte);
+    transform: translateY(-1px);
   }
 
   .roxo {
@@ -247,28 +193,8 @@ const guias = await Promise.all(
     color: var(--cor-texto);
   }
   .claro {
-    background: var(--cor-papel);
+    background: var(--cor-papel-claro);
     color: var(--cor-tinta);
-  }
-  .claro .secoes a {
-    background: rgb(14 11 20 / 0.08);
-  }
-  .claro .secoes a:hover {
-    background: rgb(14 11 20 / 0.16);
-  }
-  .lima {
-    background: var(--cor-lima);
-    color: var(--cor-tinta);
-  }
-  .lima .secoes a {
-    background: rgb(14 11 20 / 0.1);
-  }
-  .lima .secoes a:hover {
-    background: rgb(14 11 20 / 0.18);
-  }
-  .lima:hover .abrir {
-    background: var(--cor-roxo);
-    color: var(--cor-texto);
   }
 
   /* Ajuda: uma faixa larga no fim, para quem travou. */
@@ -277,14 +203,15 @@ const guias = await Promise.all(
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem 2rem;
-    margin-top: clamp(4rem, 8vw, 5.5rem);
-    padding: clamp(1.5rem, 4vw, 2.5rem);
-    border-radius: var(--raio-painel);
+    gap: 1rem 2rem;
+    margin-top: clamp(3rem, 6vw, 4rem);
+    padding: clamp(1rem, 2.5vw, 1.4rem) clamp(1.25rem, 3vw, 1.75rem);
+    border-radius: 10px;
     box-shadow: inset 0 0 0 1px var(--cor-borda-forte);
   }
   .ajuda h2 {
-    font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+    margin-bottom: 0.2rem;
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
   }
   .ajuda > div:first-child {
     flex: 1 1 26rem;
@@ -293,17 +220,33 @@ const guias = await Promise.all(
     max-width: 44rem;
     margin: 0;
     color: var(--cor-texto-suave);
+    font-size: 0.9rem;
   }
-  .botoes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
+  /* O botão de abrir a issue, em roxo. */
+  .issue {
+    background: var(--cor-roxo);
+    color: var(--cor-texto);
+  }
+  .issue:hover {
+    background: color-mix(in srgb, var(--cor-roxo) 82%, #fff);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .guia:hover,
     .guia:focus-within {
       translate: none;
+    }
+  }
+  /* No celular, um guia embaixo do outro: cartões mais baixos e mais perto uns dos outros. */
+  @media (max-width: 759px) {
+    .guias {
+      gap: 1rem;
+    }
+    .guia {
+      min-height: 0;
+    }
+    .cabeca {
+      padding-bottom: 1.25rem;
     }
   }
 </style>
