@@ -155,12 +155,15 @@ const colunas = [
   .base a:hover {
     color: var(--cor-texto);
   }
-  /* O nome da marca vazado, ocupando a largura toda: a assinatura do site. */
+  /* O nome da marca vazado: só o contorno cinza fino (o miolo tem a cor do fundo e esconde a metade
+     de dentro do traço), ocupando a largura toda. A assinatura do site.
+     A perna do "p" passa da linha do rodapé; o texto de baixo fica mais abaixo dela. */
   .assinatura {
-    margin: 0 0 -0.12em;
+    /* Centralizado, com a base das letras apoiada na linha do rodapé. */
+    margin: 0 auto -0.12em;
     font-family: var(--fonte-titulo);
     font-weight: 800;
-    font-size: clamp(4.2rem, 18.6vw, 15rem);
+    font-size: clamp(4.2rem, 21.5vw, 17rem);
     line-height: 1;
     letter-spacing: -0.035em;
     color: var(--cor-fundo);
@@ -173,43 +176,42 @@ const colunas = [
     position: relative;
     width: fit-content;
   }
-  .assinatura::after {
-    content: 'Polpad';
-    position: absolute;
-    inset: 0;
-    color: var(--cor-roxo);
-    -webkit-text-stroke: 3px var(--cor-roxo);
-    paint-order: stroke fill;
-    /* Folga fora da caixa do texto: a perna do "p" desce abaixo da linha e o "d"
-       passa um pouco da largura (o espaçamento entre letras é negativo). */
-    clip-path: inset(-0.3em 100% -0.3em -0.1em);
-  }
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .assinatura::after {
-        animation: encher linear both;
-        animation-timeline: view();
-        animation-range: entry 5% entry 100%;
-      }
-    }
-  }
-  @keyframes encher {
-    to {
-      clip-path: inset(-0.3em -0.1em -0.3em -0.1em);
-    }
-  }
   .base {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 0.5rem 2rem;
-    padding-block: 1.5rem 2rem;
+    padding-block: 4.75rem 2rem;
     border-top: 1px solid var(--cor-borda);
     font-size: 0.85rem;
     color: var(--cor-texto-fraco);
   }
   .base p {
     margin: 0;
+  }
+  @media (max-width: 640px) {
+    .topo {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-items: start;
+      gap: 2rem 1.5rem;
+    }
+    ul {
+      gap: 0;
+    }
+    ul a {
+      display: inline-block;
+      padding-block: 0.45rem;
+      font-size: 1rem;
+    }
+    .base {
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .base a {
+      display: inline-block;
+      padding-block: 0.35rem;
+    }
   }
   .base a {
     color: var(--cor-texto-suave);

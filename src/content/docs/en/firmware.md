@@ -1,13 +1,13 @@
 ---
 titulo: Firmware
-descricao: Flash and update the firmware from the app, and use the Polpad One over Bluetooth without the app.
+descricao: Flash and update the firmware from the software, and how the Polpad One connects to your computer.
 chave: firmware
 ordem: 3
 fonte: https://github.com/gabriel-re-pires/polpad/blob/main/firmware/README.md
 ---
 
 The firmware is the program that runs inside the Polpad One. You do not need
-the Arduino IDE or any other tool: the Polpad app flashes the firmware over
+the Arduino IDE or any other tool: the Polpad software flashes the firmware over
 USB.
 
 ## Flash or update
@@ -20,27 +20,23 @@ USB.
    cable halfway:** an interrupted flash leaves the Polpad One without
    firmware until you flash it again.
 
-The app shows the version on the device and warns you when the release is
+The software shows the version on the device and warns you when the release is
 older than that. It also tells you when new firmware comes out.
 
 The **Arquivo .bin no computador** (.bin file on this computer) option is
 for firmware you downloaded by hand, such as the `.bin` on the
 [Download](../../download/) page or community firmware.
 
-## With and without the app
+## How the Polpad One connects
 
-- **With the app open** (even minimized to the tray): keys go over USB and
-  the app runs the profile actions. The display shows what the app sends.
-- **Without the app**, or on another computer, tablet or phone: the
-  Polpad One becomes a **Bluetooth keyboard** with fixed shortcuts. Switching
-  between the two is automatic.
+The Polpad One works **plugged into a computer over USB, with the Polpad
+software open** (even minimized to the tray). Keys go over USB, the software runs
+the profile actions and the display shows what the software sends.
 
-### Pairing over Bluetooth
+### Bluetooth: in development
 
-1. Turn the Polpad One on. The screen shows the spinning octopus and
-   "Aguardando conexão" (waiting for connection).
-2. On Windows, open **Settings → Bluetooth & devices → Add device →
-   Bluetooth**. On Android or macOS, open the Bluetooth screen.
-3. Pick **Polpad**. No PIN is needed.
-
-If pairing misbehaves, remove the device from the system and pair again.
+The ESP32-C3 has Bluetooth, and a wireless mode has already been started in the
+firmware: without the software, the Polpad One would become a Bluetooth keyboard
+with fixed shortcuts. This mode **has not been tested yet and is not ready to
+use**, so for now use the Polpad One over the cable. Once it is ready, this guide
+will explain how to pair it.

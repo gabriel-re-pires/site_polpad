@@ -88,7 +88,7 @@ h3 {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.5rem;
-  border-radius: 999px;
+  border-radius: 3px;
   font-weight: 600;
   letter-spacing: -0.005em;
   text-decoration: none;
@@ -139,6 +139,18 @@ h3 {
   font-size: 1.05rem;
 }
 
+/* No celular, os botões ficam um pouco menores. */
+@media (max-width: 760px) {
+  .botao {
+    padding: 0.65rem 1.15rem;
+    font-size: 0.95rem;
+  }
+  .botao-grande {
+    padding: 0.75rem 1.35rem;
+    font-size: 1rem;
+  }
+}
+
 /* Link de texto com sublinhado limão, que engrossa no hover. */
 .link-seta {
   font-weight: 600;
@@ -162,19 +174,22 @@ html {
 
 /* Título e texto de abertura de uma seção. */
 .secao-cabeca {
-  max-width: 40rem;
-  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  max-width: none;
+  margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
 }
 
 .secao-cabeca h2 {
   font-size: clamp(1.9rem, 5vw, 3.25rem);
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .secao-cabeca p {
   color: var(--cor-texto-suave);
   font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.7;
   margin: 0;
+  text-align: var(--alinhar-texto);
+  hyphens: auto;
 }
 
 /* "Pular para o conteúdo": só aparece ao receber foco pelo teclado. */

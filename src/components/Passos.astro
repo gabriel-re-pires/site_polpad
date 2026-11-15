@@ -21,7 +21,6 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
   <div class="painel">
     <div class="secao-cabeca">
       <h2 id="passos-titulo">{t(idioma, 'passos_titulo')}</h2>
-      <p>{t(idioma, 'passos_intro')}</p>
     </div>
     <ol class="lista">
       {
@@ -36,9 +35,11 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
               {texto(chave, '_link')}
             </a>
             {i < passos.length - 1 && (
-              <svg class="seta" viewBox="0 0 64 40" width="64" height="40" aria-hidden="true">
-                <path d="M3 28c8-20 24-22 25-10s-14 12-10 0 22-16 40-4M50 6l8 8-11 3" />
-              </svg>
+              <span class="seta" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M4 12h15M13 5.5l6.5 6.5-6.5 6.5" />
+                </svg>
+              </span>
             )}
           </li>
         ))
@@ -53,12 +54,17 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
   }
   /* Um painel roxo grande com os passos em cartões claros por dentro. */
   .painel {
-    padding: clamp(1.75rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem) clamp(3rem, 6vw, 4.5rem);
-    border-radius: var(--raio-painel);
+    padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem) clamp(2.25rem, 4vw, 3rem);
+    border-radius: 6px;
     background: var(--cor-roxo);
   }
-  .secao-cabeca p {
-    color: rgb(255 255 255 / 0.85);
+  /* Sem subtítulo: o título ocupa a linha toda, se couber. */
+  .secao-cabeca {
+    max-width: none;
+    margin-bottom: clamp(1.25rem, 3vw, 2rem);
+  }
+  .secao-cabeca h2 {
+    margin-bottom: 0;
   }
   .lista {
     list-style: none;
@@ -78,10 +84,10 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    min-height: 21rem;
+    min-height: 17rem;
     padding: clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem) 2.75rem;
-    border-radius: var(--raio-grande);
-    background: var(--cor-papel);
+    border-radius: 20px;
+    background: var(--cor-texto);
     color: var(--cor-tinta);
   }
   /* Numeral gigante em contorno: o grafismo de letra vazada da marca. */
@@ -91,20 +97,25 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
     font-size: clamp(6rem, 12vw, 8.5rem);
     line-height: 0.8;
     letter-spacing: -0.05em;
-    color: var(--cor-papel);
-    -webkit-text-stroke: 4px var(--cor-roxo);
+    color: var(--cor-texto);
+    /* O contorno cresce para fora da letra (o miolo cobre a metade de dentro). Passar
+       de uns 6px fecha as fendas do 3. */
+    -webkit-text-stroke: 5px var(--cor-tinta);
     paint-order: stroke fill;
     padding-bottom: 1.75rem;
   }
   h3 {
     font-size: clamp(1.4rem, 2.6vw, 1.7rem);
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.85rem;
   }
   p {
     margin: 0;
     color: rgb(14 11 20 / 0.75);
+    line-height: 1.65;
+    text-align: var(--alinhar-texto);
+    hyphens: auto;
   }
-  /* O link é uma pílula que passa da borda de baixo do cartão para o roxo. */
+  /* O link é uma pílula que passa da borda de baixo do cartão para o roxo, por cima, sem recorte. */
   .chip {
     position: absolute;
     left: clamp(1.5rem, 3vw, 2rem);
@@ -114,10 +125,9 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
     align-items: center;
     min-height: 2.9rem;
     padding: 0.55rem 1.25rem;
-    border-radius: 999px;
+    border-radius: 10px;
     background: var(--cor-tinta);
     color: var(--cor-texto);
-    box-shadow: 0 0 0 5px var(--cor-roxo);
     font-weight: 600;
     text-decoration: none;
     transition:
@@ -132,30 +142,55 @@ const texto = (c: string, sufixo = '') => t(idioma, `passo_${c}${sufixo}` as Cha
     outline: 2px solid var(--cor-lima);
     outline-offset: 7px;
   }
-  /* Setas desenhadas à mão ligam um passo ao seguinte, por cima do vão. */
+  /* Um botão branco com seta liga um passo ao seguinte, por cima do vão. */
   .seta {
     position: absolute;
-    right: 2.5rem;
-    bottom: -3.3rem;
-    width: 3.6rem;
-    height: auto;
+    right: 1.75rem;
+    bottom: -1.5rem;
     rotate: 90deg;
+    display: grid;
+    place-items: center;
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+    background: var(--cor-texto);
+    color: var(--cor-tinta);
+    box-shadow: 0 0 0 5px var(--cor-roxo);
+    pointer-events: none;
+  }
+  .seta svg {
+    width: 2.1rem;
+    height: 2.1rem;
     fill: none;
-    stroke: var(--cor-lima);
-    stroke-width: 4;
+    stroke: currentColor;
+    stroke-width: 2.75;
     stroke-linecap: round;
     stroke-linejoin: round;
-    pointer-events: none;
+  }
+  /* Com os cartões lado a lado, o link fica no canto direito do cartão. No celular
+     ele fica à esquerda, porque o canto direito é da seta que desce. */
+  @media (min-width: 840px) {
+    .chip {
+      left: auto;
+      right: 0.9rem;
+    }
   }
   @media (min-width: 840px) {
     .seta {
-      left: 100%;
       right: auto;
       bottom: auto;
+      /* O centro fica um pouco para dentro do cartão do passo anterior. */
+      left: calc(100% - 0.4rem);
       top: 38%;
-      width: clamp(4.25rem, 7vw, 6rem);
       translate: -50% -50%;
-      rotate: -6deg;
+      rotate: 0deg;
+    }
+  }
+  /* No celular, um cartão embaixo do outro: sem a altura mínima, que deixava vazio. */
+  @media (max-width: 839px) {
+    .passo {
+      min-height: 0;
+      padding-bottom: 3.25rem;
     }
   }
 </style>

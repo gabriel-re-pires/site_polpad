@@ -38,7 +38,6 @@ const pct = (mm: number) => `${((mm / CASE.lado) * 100).toFixed(3)}%`;
       }
     </div>
   </div>
-  <p class="leitura" aria-hidden="true">{t(idioma, 'demo_dica')}</p>
   <noscript><style is:inline>[data-polpad] .case { visibility: visible !important; }</style></noscript>
 </div>
 
@@ -234,34 +233,5 @@ const pct = (mm: number) => `${((mm / CASE.lado) * 100).toFixed(3)}%`;
       translate 0.06s ease-out,
       box-shadow 0.06s ease-out,
       background-color 0.06s ease-out;
-  }
-
-  /* Um cartão claro, com uma frase fixa, que se sobrepõe à borda de baixo do case.
-     Fica fora do fluxo: o bloco do desenho tem a altura exata do case. */
-  .leitura {
-    position: absolute;
-    top: 100%;
-    left: 4%;
-    z-index: 1;
-    translate: 0 -1.7rem;
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    max-width: 92%;
-    min-height: 3.4rem;
-    margin: 0;
-    padding: 0.7rem 1.1rem;
-    border: 2.5px solid var(--cor-tinta);
-    border-radius: 18px;
-    background: var(--cor-papel);
-    color: var(--cor-tinta);
-    /* Sombra chapada em limão: embaixo e subindo pela lateral direita. */
-    box-shadow: 0.4rem 0.4rem 0 var(--cor-lima);
-    rotate: -2deg;
-    font-family: var(--fonte-titulo);
-    font-size: clamp(0.95rem, 2.4cqw, 1.1rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.25;
   }
 </style>

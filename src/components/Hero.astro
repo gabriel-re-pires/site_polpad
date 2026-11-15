@@ -18,14 +18,25 @@ const { idioma } = Astro.props;
         <span>{t(idioma, 'hero_linha1')}</span>
         <span>{t(idioma, 'hero_linha2')}</span>
       </h1>
-      <p class="sub">{t(idioma, 'hero_sub')}</p>
+      <p class="sub">
+        {t(idioma, 'hero_sub')}
+        {
+          /* Fora do inglês, a tradução vem depois de um círculo. */
+          t(idioma, 'hero_sub_traducao') && (
+            <>
+              <span class="ponto" aria-hidden="true" />
+              {t(idioma, 'hero_sub_traducao')}
+            </>
+          )
+        }
+      </p>
       <div class="botoes">
-        <a class="botao botao-primario botao-grande" href={rota(idioma, 'baixar')}>
-          {t(idioma, 'hero_baixar')}
-        </a>
         <a class="botao botao-escuro botao-grande" href={REPO_POLPAD}>
           <IconeGithub />
           {t(idioma, 'hero_github')}
+        </a>
+        <a class="botao botao-primario botao-grande" href={rota(idioma, 'baixar')}>
+          {t(idioma, 'hero_baixar')}
         </a>
       </div>
     </div>
@@ -44,6 +55,11 @@ const { idioma } = Astro.props;
     margin-top: calc(-1 * var(--sob-a-barra));
     padding-top: calc(var(--sob-a-barra) + clamp(1rem, 3vw, 1.75rem));
     background: var(--cor-roxo);
+    /* Ocupa a tela toda na abertura, com o conteúdo centralizado na altura. */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: var(--altura-hero);
     /* A sombra do macropad 3D passa um pouco do quadro: nunca cria rolagem lateral. */
     overflow-x: clip;
   }
@@ -53,6 +69,8 @@ const { idioma } = Astro.props;
   .painel {
     --margem: var(--gutter);
     position: relative;
+    /* O título acompanha a largura do painel quando o texto não tem uma caixa própria. */
+    container-type: inline-size;
     display: grid;
     row-gap: 2.5rem;
     padding-top: clamp(1rem, 3vw, 2rem);
@@ -90,6 +108,15 @@ const { idioma } = Astro.props;
     font-size: clamp(1.05rem, 1.9vw, 1.25rem);
     line-height: 1.45;
   }
+  .ponto {
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    margin: 0 0.55em;
+    border-radius: 50%;
+    background: var(--cor-texto);
+    vertical-align: 0.15em;
+  }
   .botoes {
     display: flex;
     flex-wrap: wrap;
@@ -100,6 +127,34 @@ const { idioma } = Astro.props;
     display: grid;
     place-items: center;
     padding-inline: clamp(1rem, 3.5vw, 2.5rem);
+  }
+
+  /* No celular, uma coluna só: título, subtítulo, o desenho do macropad e, embaixo dele, os
+     botões. O bloco do texto some como caixa (display: contents) para os botões poderem
+     descer para depois do desenho. */
+  @media (max-width: 959px) {
+    /* O conteúdo é mais alto que a tela: sem altura mínima, não sobra roxo vazio em cima. */
+    .hero {
+      min-height: auto;
+    }
+    .painel {
+      row-gap: 0;
+      padding-top: calc(clamp(1rem, 3vw, 2rem) + 1.75rem);
+      padding-bottom: 2.5rem;
+    }
+    .abertura {
+      display: contents;
+    }
+    .sub {
+      margin-bottom: 1.5rem;
+    }
+    .vitrine {
+      order: 3;
+      margin-bottom: 2rem;
+    }
+    .botoes {
+      order: 4;
+    }
   }
 
   @media (max-width: 480px) {

@@ -6,7 +6,7 @@ Os projetos da comunidade do Polpad ficam em `comunidade/`, um por pasta.
 2. Crie `comunidade/<nome-do-projeto>/`, usando só letras minúsculas, números e
    hífen no nome.
 3. Coloque lá um `projeto.yml`, uma imagem de capa e os arquivos do projeto.
-   Use `comunidade/exemplo-case-original/` como modelo.
+   Use `comunidade/case-original/` como modelo.
 4. Abra um pull request. Uma checagem automática confere o envio.
 5. Depois da revisão, o projeto aparece no site.
 
